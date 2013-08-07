@@ -1,0 +1,39 @@
+/* --------------------------------------------
+* #4052A0   violet/plum 
+* #000      black
+* #FFF      white
+* #0032A6   royal blue
+* #AAA      light gray
+* #999      light gray
+* #d4d4d4   medium gray 
+* #C0C0C0   medium gray
+* #333      charcoal gray
+* #444      dark gray
+* #E1E7FF   light blue  
+* #B5FFF0   cyan
+* #DEFFC9   light green
+* #B5FFCB   light green
+------------------------------------------------*/
+body {
+    font: 8px/7px Calibri, Arial, sans-serif;
+    background-color: #f5fffa;
+    margin: 0, 0, 0, 0;
+    width: 980px;
+    height: 80%;
+}
+button {
+    width: 180;
+    padding: 5px;
+    margin: 4px;
+}
+prnt {
+    font: 8px/7px Calibri, Arial, sans-serif;
+    background-color: #f5fffa;
+}
+input[type=text], textarea {
+    display: block;
+    width: 90%;
+    padding: .4em;
+    -moz-border-radius: 1px;
+    -webkit-border-radius: 1px;
+ }
