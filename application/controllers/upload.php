@@ -74,7 +74,7 @@ class Upload extends CI_Controller {
                     }
                 }
                 $flist[] = array('fname' => $recarr['fname'],
-                                 'image' => '<img src="'.$destdir.$fname.'" width="140px onClick="showImageDlg();" />',
+                                 'image' => '<img src="'.$destdir.$fname.'" width="120px onClick="showImageDlg();" />',
                                  'descr' => $recarr['descr'],
                                  'fboth' => $recarr['fboth']
                                  );

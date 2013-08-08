@@ -124,6 +124,34 @@
         return false;
   }
   /*
+   * Function to retrieve images for showcase
+  */
+  public function get_imagelist($filter = '') {
+ 
+       $sqlstr = 'SELECT tbl_itags.tagid AS tid,
+                         tbl_itags.descr tdescr,
+                         tbl_images.imgid AS pid,
+                         tbl_images.descr AS pdescr,
+                         tbl_images.fname as fname,
+                 CONCAT(tbl_images.fpath,tbl_images.fname) as picture
+                 FROM tbl_images
+                 INNER JOIN (tbl_itags) ON tbl_images.tagid = tbl_itags.tagid ';
+       
+       if(strlen($filter) > 0) 
+           $sqlstr .= ' WHERE '.$filter.' ';
+       
+       $sqlstr .= ' ORDER BY  tbl_itags.descr ,  tbl_images.descr;';
+       
+       $query = $this->db->query($sqlstr);
+       if ($query->num_rows() > 0) {
+          foreach ($query->result() as $row) {
+              $data[] = $row;
+          }
+          return $data;
+        }
+        return false;
+  } //end get_imagedata
+  /*
    * Function to retrieve all stored image date
   */
   public function get_imagedata($imgid) {
@@ -246,11 +274,10 @@
                $msg = "Error in update";
          } else if($mode == DELETE_REC) {
             $fpath = trim($row->fpath);
-            // remove file from user image area:
+            // remove file and thumbnail from user image area:
             for($j=0; $j <= 1;$j++){
                $fname = trim($row->fname);
                $fname = $j == 0 ? $fname : $this->rtn_thumb_name($fname);
-               $fpath = './'.IMG_FOLDER;
                $filename = $fpath.$fname;
                if(file_exists($filename))
                {

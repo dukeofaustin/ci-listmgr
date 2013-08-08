@@ -83,7 +83,7 @@ h2
 
 	.showcase-content-container
 	{
-		background-color: #000;
+        background-color: #CCFFFE; /* wm-modified */		
 	}
 	
 	/* Navigation arrows */
@@ -121,7 +121,7 @@ h2
 	/* Content */
 	.showcase-content
 	{
-		background-color: #000;
+		background-color: #CCFFFE; /* #000 */
 		text-align: center;
 	}
 		
@@ -159,12 +159,13 @@ h2
 		.showcase-caption
 		{
 			color: #000;
+			background-color: #CCFFFE;
 			padding: 8px 15px;
 			text-align: left;
 			position: absolute;
 			bottom: 10px; left: 10px; right: 10px;
 			display: none;
-			background-image: url(../images/aw-pix/white-opacity-80.png);
+			/* background-image: url(../images/aw-pix/white-opacity-80.png); */
 		}
 		
 	.showcase-onepage .showcase-content
@@ -191,13 +192,14 @@ h2
 	
 		.showcase-button-wrapper span.active
 		{
-			color: #fff;
+            color: #FFFFFF;			   /* wm-modified */
+			background-color: #2191c0; /* wm-modified */
 		}
 	
 	/* Thumbnails */
 	.showcase-thumbnail-container /* Used for backgrounds, no other styling!!! */
 	{
-		background-color: #000;
+		background-color: #CCFFFE;
 	}
 	
 	.showcase-thumbnail-wrapper

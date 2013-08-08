@@ -15,7 +15,7 @@
 	    $this->load->helper(array('url','html'));
     }
     
-    public function index()
+    public function index1()
     {
       	$data['title'] = 'Gallery-Index';
 	    $this->load->view('templates/header', $data);
@@ -28,6 +28,17 @@
 	    $this->load->view('gallery/index', $data);
 	    $this->load->view('templates/footer');
     }
+
+    public function index()
+    {
+      	$data['title'] = 'Gallery';
+        $query = $this->gallery_model->get_imagelist('tbl_images.descr != "<none>"'); //no filter
+        $data['image_list'] = $query;
+        $this->load->view('templates/header', $data);
+	    $this->load->view('gallery/slideshow', $data);
+	    $this->load->view('templates/footer');
+    }
+
     public function images()
     {
          $this->load->library('pagination');
@@ -348,7 +359,7 @@
             echo form_radio($inpattr).' Private';
             echo '</td></tr><tr><td colspan="2">';
             echo '<p><div id="img-box" />';
-	        //$file = './'.IMG_USER_PATH.$imgrec['fname'];
+	        //$file1 = './'.IMG_USER_PATH.$imgrec['fname'];
             $file = $imgrec['fpath'].$imgrec['fname'];
 	        echo '<img id="img-box" src="'.$file.'" width="140px" onClick="showImageDlg();" />';
             echo '</td></tr><tr><td colspan="2">';	    
@@ -394,6 +405,8 @@
             echo '</td></tr></table>';
             $formattr = "</div></div>";
             echo form_fieldset_close($formattr);
+            if(TEST_MODE)
+              echo '<p> file: '.$file;
         }
       return;
     }
