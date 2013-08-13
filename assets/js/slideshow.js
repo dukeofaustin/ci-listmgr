@@ -2,7 +2,7 @@ jQuery(document).ready(function () {
 	$("#showcase").awShowcase(
 	{
 		content_width:			750,
-		content_height:			650,
+		content_height:			750,
 		fit_to_parent:			false,
 		auto:				    false,
 		interval:			    3000,

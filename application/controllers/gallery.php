@@ -3,9 +3,10 @@
   
   class Gallery extends CI_Controller {
     
-    const MAX_PDESC = 40;
-    const MAX_TDESC = 12;
-   
+    const MAX_PDESC = 40; // grid pic description view length 
+    const MAX_TDESC = 12; // grid tag descrtiption view length
+    const IMG_WIDE = 640; // target width
+    const IMG_HITE = 480; // target height
     
     public function __construct() 
     {
@@ -198,68 +199,6 @@
         }
         echo $rtn;
     }
-    public function updsize()
-    {
-      $origfile = $this->input->post('ifile');  
-      $imgid = $this->input->post('imgid');
-      $emode = $this->input->post('emode'); 
-      $which = $this->input->post('which'); 
-      $topx  = $this->input->post('topx'); 
-      $topy  = $this->input->post('topy'); 
-      $botx  = $this->input->post('botx'); 
-      $boty  = $this->input->post('boty'); 
-      $wide  = $this->input->post('wide'); 
-      $hite  = $this->input->post('hite');
-      $newfile = str_replace(IMG_USER_PATH,IMG_UPLOAD_PATH,$origfile);
-      /*      
-      //$test = 'ifile='.$ifile.' newfile='.$newfile;
-      //$test .= ' replace('.IMG_USER_PATH.','.IMG_UPLOAD_PATH.','.$ifile.')';
-      //die($test);
-      //_smart_resize_image creates copy of original but to new dimensions
-      if($this->_smart_resize_image( $ifile,
-                                      $wide,
-                                      $hite,
-                                       true,
-                                   $newfile,
-                                      false,
-                                       true,
-                                        100))
-                                        */
-      if($this->_crop_image($origfile,
-                            $newfile,
-                            $topx,
-                            $topy,
-                            $botx,
-                            $boty))
-      {
-        echo $newfile.' created';
-      } else {
-        echo 'error creating '.$newfile;
-      }
-      /*
-     * @param  $file - file name to resize
-     * @param  $width - new image width
-     * @param  $height - new image height
-     * @param  $proportional - keep image proportional, default is no
-     * @param  $output - name of the new file (include path if needed)
-     * @param  $delete_original - if true the original image will be deleted
-     * @param  $use_linux_commands - if set to true will use "rm" to delete the image, if false will use PHP unlink
-     * @param  $quality - enter 1-100 (100 is best quality) default is 100
-      */
-      /*
-      $msg = 'ifile['.$ifile.'] ';
-      $msg .= 'imgid['.$imgid.'] ';
-      $msg .= 'emode['.$emode.'] ';
-      $msg .= 'which['.$which.'] ';
-      $msg .= 'topx['.$topx.'] ';
-      $msg .= 'topy['.$topy.'] ';  
-      $msg .= 'botx['.$botx.'] ';  
-      $msg .= 'boty['.$boty.'] ';  
-      $msg .= 'wide['.$wide.'] ';
-      $msg .= 'hite['.$hite.']';
-      echo $msg;
-      */
-    }
     public function findform()
     {
         $this->load->helper('form');
@@ -314,6 +253,8 @@
         if($imgrec) {
             
             $allow = $imgrec['allow'];
+            $width = $imgrec['fwide'];
+            $height = $imgrec['fhite'];
             $incitem = (isset($which) &&  strtolower($which) == ITEM_STR) ? true : false; // include item or group only update
             
             if($incitem) {
@@ -357,6 +298,28 @@
                     'checked'  => $allow == 1 ? TRUE : FALSE );
             //echo form_label('Private','radiobtn');
             echo form_radio($inpattr).' Private';
+            /*
+            $ddltitle = 'Adjust Image';
+            echo form_label($ddltitle,'chkboxgrp');
+            $inpattr = array(
+                    'name'     => 'cropimg',
+                    'id'       => 'cropimg',
+                    'value'    => 'C',
+                    'class'    => 'wijmo-checkbox',
+                    'style'    => 'float: left',
+                   'checked'   => FALSE );
+            //echo form_label('Public','radiobtn');
+            echo form_checkbox($inpattr).' Crop';            
+            $inpattr = array(
+                    'name'     => 'rsizimg',
+                    'id'       => 'rsizimg',
+                    'value'    => 'R',
+                    'class'    => 'wijmo-checkbox',
+                    'style'    => 'float: left',
+                   'checked'   => FALSE );
+            //echo form_label('Private','radiobtn');
+            echo form_checkbox($inpattr).' Resize';
+            */
             echo '</td></tr><tr><td colspan="2">';
             echo '<p><div id="img-box" />';
 	        //$file1 = './'.IMG_USER_PATH.$imgrec['fname'];
@@ -384,6 +347,9 @@
             echo '<input type="hidden" id="tagidnbr" value="'.$tagid.'"/>';
             echo '<input type="hidden" id="allow" value="'.$allow.'"/>';
             echo '<input type="hidden" id="editwhat" value="'.$which.'"/>';
+            echo '<input type="hidden" id="imgwide" value="'.$width.'"/>';
+            echo '<input type="hidden" id="imghite" value="'.$height.'"/>';
+            
             echo '</td></tr><tr><td colspan="2">';
             $btnattr = array( 'name' => 'delete',
                               'id' => 'frmdel',
@@ -506,6 +472,102 @@
         $rtn = strlen($what) > $howmuch ? substr($what,0, $howmuch).'...' : $what;
         return $rtn;
     }
+    public function chgsize()
+    {
+      $origfile = $this->input->post('ifile');
+      $newfile = $origfile;
+      $imgid = $this->input->post('imgid');
+      $emode = $this->input->post('emode'); 
+      $which = $this->input->post('which'); 
+      $topx  = $this->input->post('topx'); 
+      $topy  = $this->input->post('topy'); 
+      $botx  = $this->input->post('botx'); 
+      $boty  = $this->input->post('boty'); 
+      $wide  = (int) $this->input->post('wide'); 
+      $hite  = (int) $this->input->post('hite');
+      /*if(stripos($origfile,IMG_UPLOAD_PATH) !== false)
+         $newfile = str_replace(IMG_UPLOAD_PATH, IMG_USER_PATH,$origfile);
+      if(stripos($origfile,IMG_USER_PATH) === false)
+         $newfile = IMG_USER_PATH.$origfile; */
+      $newfile = str_replace(IMG_UPLOAD_PATH, IMG_USER_PATH,$origfile);
+           
+      $quality = 85;
+      $rtnmsg = '';
+      /*$dbug =
+      $dbug = 'before wide('.$wide.') hite('.$hite.')';
+      $dbug = 'origfile['.$origfile.'] ';
+      $dbug .= 'newfile['.$newfile.'] ';
+      $dbug .= 'imgid ['.$imgid.'] ';
+      $dbug .= 'emode ['.$emode.'] ';
+      $dbug .= 'which ['.$which.'] ';
+      $dbug .= 'topx  ['.$topx .'] ';
+      $dbug .= 'topy  ['.$topy .'] ';
+      $dbug .= 'botx  ['.$botx .'] ';
+      $dbug .= 'boty  ['.$boty .'] ';
+      $dbug .= 'wide  ['.$wide .'] ';
+      $dbug .= 'hite  ['.$hite .'] '; */
+      //die($dbug);
+      if($emode == 'R')
+      {
+          $newsize = $this->_get_target_size($wide, $hite);
+          $newwide = $newsize['width'];
+          $newhite = $newsize['height'];
+          $dbug = 'old-wide  ['.$wide .'] ';
+          $dbug .= 'old-hite  ['.$hite .'] ';
+          $dbug .= 'new-wide  ['.$newwide .'] ';
+          $dbug .= 'new-hite  ['.$newhite .'] ';
+          echo $dbug;
+          if($this->_smart_resize_image($origfile,
+                                         $newwide,
+                                         $newhite,
+                                             true,
+                                         $newfile,
+                                            false,
+                                            false,
+                                          $quality))
+            $rtnmsg = 'successfully resized '.$newfile;
+          else
+            show_error($rtnmsg);
+            $rtnmsg = 'error resizing '.$newfile;
+            
+      } else {                                            
+          if($this->_crop_image($origfile,
+                                 $newfile,
+                                    $topx,
+                                    $topy,
+                                    $botx,
+                                    $boty))
+               $rtnmsg = 'cropped '. $newfile;
+           else
+               show_error($rtnmsg);
+               $rtnmsg = 'error croping '.$newfile;
+      }
+      
+      echo '<p>emode='.$emode.' width('.$wide.') hite('.$hite.') '.$dbug.'</p>';
+      echo $rtnmsg;
+    }
+    function _get_target_size($width, $height)
+    {
+        $rtn = array( 'width'  =>  $width,
+                      'height' => $height );
+        
+        $wide = self::IMG_WIDE;
+        $hite = self::IMG_HITE;
+        $rtnwide = $width;
+        $rtnhite = $height;
+        if($width > 0 && $width > $wide){
+           $pcent = ($wide / $width);
+           $rtnwide = (int) ($pcent * $width);
+        }
+        if($height > 0 && $height > $hite){
+           $pcent = ($hite / $height);
+           $rtnhite = (int) ($pcent * $height);
+        }
+        $rtn['width'] = $rtnwide;
+        $rtn['height'] = $rtnhite;
+        return $rtn;
+    }
+    
     /**
      * image resize function
      * @param  $file - file name to resize
@@ -667,239 +729,45 @@
       }
 } //end class
 /*
- *    function editform()
+    public function updsize()
     {
-        //todo: put in User controller/view -- needed for dev test of user_model->update_user
-        $uname = '';
-        $email = '';
-        //$usrid = 0;
-        $imgid = $this->input->post('imgid');
-        $tagid = $this->input->post('tagid');
-        
-        $grps = $this->_get_alltags(false);
-        $data['groups'] = $grps;
-        $sarr = $this->session->all_userdata();
-        if (isset($sarr['uname']) && $sarr['uname'] != "") {
-            $uname = $sarr['uname'];
-        }
-        if (isset($sarr['email']) && $sarr['email'] != "") {
-            $email = $sarr['email'];
-        }
-        //var_dump($sarr);
-        //var_dump($grps);
-        print_r('sarr('.$sarr.') uname('.$uname.') email('.$email.')');
-        print_r('imgid('.$imgid.') tagid('.$tagid.') grps['.$grps.']');
-        if($uname != '' && $email != '' ) {
-            $data['image'] = $this->gallery_model->get_imagedata($imgid);
-            $data['title'] = 'Edit Image Data';
-            //var_dump("data ".$data);
-            //$this->load->view('templates/header', $data);
-            $this->load->view('gallery/editimage', $data);
-            //$this->load->view('templates/footer');
-        }
-    }
-       public function getform()
-    {
-        $this->load->helper('form');
-                
-        $which = GROUP_STR;
-        $descr = '';
-        $tagid = 0;
-        $imgid = 0;
-        
-        $which = $this->input->post('which');
-        $tagid = $this->input->post('tagid');
-        
-        if($which == GROUP_STR){
-            $this->_get_tag_frm();
-            return;
-        }
-        
-        $imgid = $this->input->post('imgid');
-        $descr = $this->input->post('descr');
-        
-        $imgrec = $this->gallery_model->get_imagedata($imgid);
-        if($imgrec) {
-            
-            $allow = $imgrec['allow'];
-            $incitem = (isset($which) &&  strtolower($which) == ITEM_STR) ? true : false; // include item or group only update
-            
-            if($incitem) {
-               $descr = (strlen($descr) > 1 || $imgid > 0) ? $descr : ADD_NEW_REC;
-               $grps = $this->_get_alltags(false);
-            } else {
-               $grps = $this->_get_alltags();
-            }
-            echo '<script src="'.base_url().'assets/js/imageedit.js" type="text/javascript"></script>';
-            echo '<div class="gridcolumn">';
-            echo '<div id="itmform" class="ui-widget-content">';
-                
-            $frmtitle = $incitem ? 'Image Information' : 'Group Information';        
-            echo form_fieldset('<b><style="text-align:center;">'.$frmtitle.'</style></b>');
-            echo '<p class="validateTips"></p>';
-            $js = 'id="frm-dropdown" class="wijmo-wijdropdown"';
-            $ddltitle = $incitem ? 'Assigned Group' : 'Selections';        
-            echo form_label($ddltitle,'frm-dropdown');
-            echo form_dropdown('frm-dropdown',$grps,$tagid,$js);
-            echo '<br/>';
-            //allow (access)
-            $ddltitle = $incitem ? 'Allow Access' : 'Selections';        
-            echo form_label($ddltitle,'radiogrp');
-            $inpattr = array(
-                    'name'     => 'radiobtn',
-                    'id'       => 'radiobtn',
-                    'value'    => '0',
-                    'class'    => 'wijmo-radio',
-                    'style'    => 'float: left',
-                   'checked'   => $allow == 0 ? TRUE : FALSE );
-            //echo form_label('Public','radiobtn');
-            echo form_radio($inpattr).' Public';            
-            $inpattr = array(
-                    'name'     => 'radiobtn',
-                    'id'       => 'radiobtn',
-                    'value'    => '1',
-                    'class'    => 'wijmo-radio',
-                    'style'    => 'float: left',
-                    'checked'  => $allow == 1 ? TRUE : FALSE );
-            //echo form_label('Private','radiobtn');
-            echo form_radio($inpattr).' Private';
-            echo '<p><div id="img-box" />';
-            //file path
-            echo form_label('File Path','fpath');
-            $inpattr = array(
-                    'name'        => 'fpath',
-                    'id'          => 'fpath',
-                    'value'       => $imgrec['fpath'],
-                    'maxlength'   => '128',
-                    'size'        => '80',
-                    'style'       => 'width:95%'   );
-            echo form_input($inpattr);
-            //file name
-            echo form_label('File Name','fname');
-            $inpattr = array(
-                    'name'        => 'fname',
-                    'id'          => 'fname',
-                    'value'       => $imgrec['fname'],
-                    'maxlength'   => '128',
-                    'size'        => '80',
-                    'style'       => 'width:95%'   );
-            echo form_input($inpattr);
-            //file description
-            $ddltitle = $incitem ? 'Image Description' : 'Group Description';        
-            echo form_label($ddltitle,'descr');
-            $inpattr = array(
-                  'name'        => 'descr',
-                  'id'          => 'descr',
-                  'value'       => $imgrec['descr'],
-                  'cols'        => '50',
-                  'rows'        => '3',
-                  'style'       => 'width:95%',
-                  'class'       => 'text ui-widget-content ui-corner-all'
-                );
-            echo form_textarea($inpattr);
-            //echo '<textarea id="descr" rows="3" cols="50" class="text ui-widget-content ui-corner-all" value="'.$descr.'"/>';
-    
-            echo '<input type="hidden" id="imgidnbr" value="'.$imgid.'"/>';
-            echo '<input type="hidden" id="tagidnbr" value="'.$tagid.'"/>';
-            echo '<input type="hidden" id="allow" value="'.$allow.'"/>';
-            echo '<input type="hidden" id="editwhat" value="'.$which.'"/>';
-            echo '<br />';
-                
-            $btnattr = array( 'name' => 'show',
-                              'id' => 'frmsho',
-                              'class' => 'frmsho',
-                              'content' => 'Show');
-            echo form_button($btnattr);
-            
-            $btnattr = array( 'name' => 'delete',
-                              'id' => 'frmdel',
-                              'class' => 'frmdel',
-                              'content' => 'Delete');
-            echo form_button($btnattr);        
-            
-            $btnattr = array( 'name' => 'update',
-                              'id' => 'frmupd',
-                              'class' => 'frmupd',
-                              'content' => 'Update');
-            echo form_button($btnattr);        
-            
-            $btnattr = array( 'name' => 'frmout',
-                              'id' => 'frmout',
-                              'class' => 'frmout',
-                              'content' => 'Cancel');
-            echo form_button($btnattr);        
-            echo form_fieldset_close();
-            $formattr = "</div></div>";
-            echo $formattr;
-        }
-      return;
-    }
-    public function _get_tag_frm()
-    {
-        //$this->load->helper('form');
-                
-        $which = GROUP_STR;
-        $descr = '';
-        $tagid = 0;
-        
-        $which = $this->input->post('which');
-        $tagid = $this->input->post('tagid');
-        $descr = $this->input->post('descr');
-        
-        $tagrec = $this->gallery_model->get_imagetag($tagid);
-        if($tagrec) {
-            $descr = (strlen($descr) > 1 || $tagid > 0) ? $descr : ADD_NEW_REC;
-            $grps = $this->_get_alltags(true);
-            echo '<script src="'.base_url().'assets/js/imageedit.js" type="text/javascript"></script>';
-            echo '<div class="gridcolumn">';
-            echo '<div id="itmform" class="ui-widget-content">';
-                
-            $frmtitle = 'Image Categories';        
-            echo form_fieldset('<b><style="text-align:center;">'.$frmtitle.'</style></b>');
-            echo '<p class="validateTips"></p>';
-            $js = 'id="frm-dropdown" class="wijmo-wijdropdown"';
-            $ddltitle = 'Selections';        
-            echo form_label($ddltitle,'frm-dropdown');
-            echo form_dropdown('frm-dropdown',$grps,$tagid,$js);
-            echo '<br/>';
-            //allow (access)
-            echo '<p>';
-            //file path
-            echo form_label('Description ','descr');
-            $inpattr = array(
-                    'name'        => 'descr',
-                    'id'          => 'descr',
-                    'value'       => $tagrec['descr'],
-                    'maxlength'   => '128',
-                    'size'        => '80',
-                    'style'       => 'width:95%'   );
-            echo form_input($inpattr);
-
-            echo '<input type="hidden" id="tagidnbr" value="'.$tagid.'"/>';
-            echo '<input type="hidden" id="editwhat" value="'.$which.'"/>';
-            echo '<br />';
-    
-            $btnattr = array( 'name' => 'delete',
-                              'id' => 'frmdel',
-                              'class' => 'frmdel',
-                              'content' => 'Delete');
-            echo form_button($btnattr);        
-            
-            $btnattr = array( 'name' => 'update',
-                              'id' => 'frmupd',
-                              'class' => 'frmupd',
-                              'content' => 'Update');
-            echo form_button($btnattr);        
-            
-            $btnattr = array( 'name' => 'frmout',
-                              'id' => 'frmout',
-                              'class' => 'frmout',
-                              'content' => 'Cancel');
-            echo form_button($btnattr);        
-            echo form_fieldset_close();
-            $formattr = "</div></div>";
-            echo $formattr;
-        }
-      return;
-    }
+      $origfile = $this->input->post('ifile');  
+      $imgid = $this->input->post('imgid');
+      $emode = $this->input->post('emode'); 
+      $which = $this->input->post('which'); 
+      $topx  = $this->input->post('topx'); 
+      $topy  = $this->input->post('topy'); 
+      $botx  = $this->input->post('botx'); 
+      $boty  = $this->input->post('boty'); 
+      $wide  = (int) $this->input->post('wide'); 
+      $hite  = (int) $this->input->post('hite');
+      $newfile = str_replace(IMG_UPLOAD_PATH, IMG_USER_PATH,$origfile);
+      
+      $x = 'before wide('.$wide.') hite('.$hite.')';
+      
+      $wide = ($wide / 3);
+      $hite = ($hite / 3);
+      
+      print_r('width('.$wide.') hite('.$hite.') '.$x);
+      
+      if($this->_smart_resize_image($origfile,
+                                      $wide,
+                                      $hite,
+                                       true,
+                                   $newfile,
+                                      false,
+                                      false,
+                                        100))
+                                        
+      if($this->_crop_image($origfile,
+                            $newfile,
+                            $topx,
+                            $topy,
+                            $botx,
+                            $boty))
+      {
+        echo $newfile.' created';
+      } else {
+        echo 'error creating '.$newfile;
+      }
 */

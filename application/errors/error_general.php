@@ -1,25 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<title>Error</title>
 <style type="text/css">
-
 ::selection{ background-color: #E13300; color: white; }
 ::moz-selection{ background-color: #E13300; color: white; }
 ::webkit-selection{ background-color: #E13300; color: white; }
 
-body {
-	background-color: #fff;
-	margin: 40px;
-	font: 13px/20px normal Helvetica, Arial, sans-serif;
-	color: #4F5155;
-}
-
-a {
-	color: #003399;
-	background-color: transparent;
-	font-weight: normal;
-}
 
 h1 {
 	color: #444;
@@ -42,7 +25,8 @@ code {
 	padding: 12px 10px 12px 10px;
 }
 
-#container {
+#errcontainer {
+	background-color: #E18B6B; /*dark salmon*/
 	margin: 10px;
 	border: 1px solid #D0D0D0;
 	-webkit-box-shadow: 0 0 8px #D0D0D0;
@@ -52,11 +36,7 @@ p {
 	margin: 12px 15px 12px 15px;
 }
 </style>
-</head>
-<body>
-	<div id="container">
+	<div id="errcontainer">
 		<h1><?php echo $heading; ?></h1>
 		<?php echo $message; ?>
 	</div>
-</body>
-</html>

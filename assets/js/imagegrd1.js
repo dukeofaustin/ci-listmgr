@@ -1,5 +1,6 @@
 $(document).ready(function () {
   $(':input[type="text"]').wijtextbox();
+  $(':input[type="checkbox"]').wijcheckbox();
   $('.pagination-digg > li a').live('click', function(eve){
       eve.preventDefault();
       var result = 'paginate';
@@ -77,7 +78,9 @@ $(document).ready(function () {
                   console.log('ifile='+ifile);
                   if(ifile != 'undefined' && ifile.length > 3){
                     $("#imagview").empty();
-                    $("#imagview").append('<img src="'+ifile+'" id="pix" />');
+                    $("#imagview").append('<p><input type="checkbox" class="floatleft" name="cropimg" value="C" /> Crop </p>');
+                    $("#imagview").append('<p><input type="checkbox" class="floatleft" name="rsizimg" value="R" /> Resize </p><br />');
+                    $("#imagview").append('<p><img src="'+ifile+'" id="pix" />');
                     $("#imagview").append('<div id="subtitle"><label>'+lfile+'</label></div>');
                     $("#imagview").append('<script language="Javascript">'+
                                                   '$("#pix").Jcrop({' +
@@ -105,8 +108,8 @@ $(document).ready(function () {
       $('#y').val(c.y);
       $('#x2').val(c.x2);
       $('#y2').val(c.y2);
-      $('#w').val(c.w);
-      $('#h').val(c.h);
+      //$('#w').val(c.w);
+      //$('#h').val(c.h);
   };
   function getImageId()
   {
@@ -124,25 +127,33 @@ $(document).ready(function () {
   {
     return $('#descr').val();
   }
+  function getImageChange()
+  {
+    var rtn = '';
+    $("input[type='checkbox']:checked").each(function(){
+        rtn = $(this).val();
+    });
+   return rtn;
+  }  
   function updImageSize()
   {
     var rtn = false;
     var params = {
             ifile : getImageName(),  
             imgid : getImageId(),
-            emode : 'upd',
+            emode : getImageChange(),
             which : 'item',
             topx  : $('#x').val(),
             topy  : $('#y').val(),
             botx  : $('#x2').val(),
             boty  : $('#y2').val(),
-            wide  : $('#w').val(),
-            hite  : $('#h').val()
+            wide  : $('#imgwide').val(),
+            hite  : $('#imghite').val()
         }
         $result = '';
         $.ajax({
            type: 'POST',
-           url: 'index.php?gallery/updsize',
+           url: 'index.php?gallery/chgsize',
            data: params,
            cache:false,
            async: false,
