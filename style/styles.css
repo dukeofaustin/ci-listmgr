@@ -34,7 +34,7 @@ abbr,acronym { border:0; }
 }
 html{
     color: #333;
-    background:  #CCFFFE; /* around body */
+    background-color:  #CCFFFE; /* around body */
 }
 body {
     font: 16px/15px Calibri, Arial, sans-serif;
@@ -58,8 +58,9 @@ h1 {font-size: 1.2em; margin: .6em 0; color: blue;}
 em{color: red;}
 button {border:0; margin:0; padding:0;}
 label{
-    font: 16px/25px Calibri, Arial, sans-serif;
+    font: 18px/25px Calibri, Arial, sans-serif;
     display: block;
+    color: #0000A0;   /* dark blue */
 }
 input[type=text], input[type=password], textarea {
     font: 16px/25px Calibri, Arial, sans-serif;
@@ -78,6 +79,9 @@ input[type=radio], input[type=checkbox] {
     -webkit-border-radius: 2px;
  }
 .floatleft {
+    position: relative;
+    left: 0;
+    top: 0;
     float: left;
 }
 .ui-selectable select {
@@ -89,7 +93,7 @@ fieldset { padding:0;
            border:0;
            margin-top: 3px;
            width: 100%;
-          }
+}
 .ui-dialog .ui-state-error { padding: .1em; }
 .validateTips { border: 1px solid transparent; padding: 0.3em; }
 .innertube{
@@ -178,7 +182,7 @@ fieldset { padding:0;
 }
 #contentwrapper .column {
     position: relative; 
-    border: 1px solid #4052A0;
+    /*border: 1px solid #4052A0; for testing layout*/
 }
 #leftbtncol{  
     float: left;

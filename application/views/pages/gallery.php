@@ -18,6 +18,20 @@
 	    $this->load->helper(array('url','html'));
     }
     
+    public function index1()
+    {
+      	$data['title'] = 'Gallery-Index';
+	    $this->load->view('templates/header', $data);
+	    $data['ipath'] = base_url().IMG_USER_PATH;
+	    if (file_exists($data['ipath'].'AnArtistsJourney.jpg'))
+ 	       $fexist = "Yes";
+	    else
+	       $fexist = "Nah";
+	    $data['fexist'] = $fexist;
+	    $this->load->view('gallery/index', $data);
+	    $this->load->view('templates/footer');
+    }
+
     public function index()
     {
       	$data['title'] = 'Gallery';
@@ -312,9 +326,8 @@
             $fboth = $imgrec['fboth'];
             $file  = $imgrec['fpath'].$imgrec['fname'];
             
-            if((strlen($file) > 0) &&
-               ((!isset($width) || $width == 0) ||
-               (!isset($height) || $height == 0)))
+            if((!isset($width) || $width == 0) ||
+               (!isset($height) || $height == 0))
             {
                $fileinfo = getimagesize($file);
                $width = $fileinfo[0];
@@ -364,11 +377,10 @@
                     'style'    => 'float: left',
                     'checked'  => $allow == 1 ? true : false );
             echo form_radio($inpattr).' Private';
-            
-            //if(TEST_MODE) {
-            //   echo form_label($fboth);
-            //   echo form_label('<p>'.$fpath);
-            //}
+            if(TEST_MODE) {
+               echo form_label($fboth);
+               echo form_label('<p>'.$fpath);
+            }
             /*
             $ddltitle = 'Adjust Image';
             echo form_label($ddltitle,'chkboxgrp');
@@ -659,7 +671,7 @@
      */
     function _string_endswith($word, $end)
     {
-       return (strpos($word, $end, strlen($word) - strlen($end)) !== false);
+       return (strpos($whole, $end, strlen($whole) - strlen($end)) !== false);
     }
     /**
      * getFileInfo
@@ -674,7 +686,7 @@
     
     function _get_target_size($width, $height)
     {
-        $rtn_size = array( 'width'  => $width,
+        $rtn_size = array( 'width'  =>  $width,
                            'height' => $height );
         
         $wide = self::IMG_WIDE;
@@ -878,7 +890,7 @@
     function cleanup()
     {
        $futil = new sitefileutils();
-       $flist = array('cleanup utility');
+       $flist = array();
        
        for($k = 0; $k <= 1; $k++) {
        
@@ -891,17 +903,16 @@
        
             if(!$this->imagfind($file)){
                if(unlink($file))
-                  $msg = 'Deleted: '.$file;
+                  $msg = 'Deleted: ';
                else
-                  $msg = 'Could not delete: '.$file;
-               $flist[] = $msg;
+                  $msg = 'Could not delete: ';
+                  
+               $flist[] = array($msg => $file);
             }
-            $data['result'] = $flist;
           }
+          $data['result'] = $flist;
         }
-        $this->load->view('templates/header');
         $this->load->view('pages/utility',$data);
-	    $this->load->view('templates/footer');
     }
       
 } //end class

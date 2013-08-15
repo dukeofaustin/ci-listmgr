@@ -1,6 +1,5 @@
 <script type="text/javascript">
   $(function() {
-    $(":input[type='checkbox']").wijcheckbox();
     $('#accordion').accordion({
 			animated: 'easeOutElastic',
 			active: false,          //close at all panels startup

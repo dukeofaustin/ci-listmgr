@@ -84,7 +84,7 @@
       }
       $query->free_result(); // Release memory
       if (!$rtn){
-        show_error('update_itag - tbl_itags error during '+$mode,500); 
+        trigger_error('update_itag - tbl_itags error during '+$mode,500); 
       }
     }  
     return $rtn;
@@ -152,6 +152,27 @@
         return false;
   } //end get_imagedata
   /*
+   * Function to retrieve images for showcase
+  */
+  public function get_imagename($filename) {
+      $data = array();
+      $sqlstr = 'SELECT tbl_images.imgid AS pid,
+                  CONCAT(tbl_images.fpath,tbl_images.fname) as filename
+                  FROM tbl_images';
+       
+      if(strlen($filename) > 0) 
+           $sqlstr .= ' WHERE CONCAT(tbl_images.fpath,tbl_images.fname) LIKE "%'.$filename.'%";';
+
+      $query = $this->db->query($sqlstr);
+      if ($query->num_rows() > 0) {
+          foreach ($query->result() as $row) {
+              $data[] = $row;
+          }
+          return $data;
+      }
+      return $data;
+  } //end get_imagename
+  /*
    * Function to retrieve all stored image date
   */
   public function get_imagedata($imgid) {
@@ -188,7 +209,7 @@
    public function update_image($mode, $imgrec)
    {
      $rtn = false;
-     $msg = 'update_image_pre';
+     $msg = 'update_image_pre'; 
      $err = 'update_image-Error';
      $usrid = 0;
      $imgid = $imgrec['imgid'];

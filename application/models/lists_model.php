@@ -251,7 +251,7 @@
       }
       $query->free_result(); // Release memory
       if (!$rtn){
-        show_error('update_item - tbl_lstitem error during '+$mode,500); 
+        trigger_error('update_item - tbl_lstitem error during '+$mode,500); 
       }
     }  
     return $rtn;
@@ -288,7 +288,7 @@
       }
       $query->free_result(); // Release memory
       if (!$rtn){
-        show_error('update_group - tbl_lstgroup error during '+$mode,500); 
+        trigger_error('update_group - tbl_lstgroup error during '+$mode,500); 
       }
     }  
     return $rtn;

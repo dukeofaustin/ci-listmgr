@@ -2,7 +2,7 @@
    <h3>Your files were successfully uploaded!</h3>
    <div id="leftbtncol" class="column">
      <div class="innertube">
-         <?php foreach ($upload_data as $item):?>
+         <?php foreach ($uploadlist as $item):?>
               <?php if(is_array($item)) {
                   foreach ($item as $i => $v):?>
                      <p><?php echo $i;?>: <?php echo $v;?></p>

@@ -23,8 +23,11 @@
                <ul>
                  <li><a href="<?php echo base_url();?>index.php?session">Dev-Session</a></li>
                  <li><a href="<?php echo base_url();?>index.php?login">Login Form</a></li>
-                 <li><a href="<?php echo base_url();?>index.php?about">&lt;Whatever 2&gt;</a></li>
-                 <li><a href="#">A link with a really long label would wrap nicely as you can see</a></li>
+                 <li><a href="#">Admin Section</a>
+                    <ul>
+                      <li><a href="<?php echo base_url();?>index.php?gallery/cleanup">Cleanup User Files</a></li>
+                    </ul>
+                 </li>
                  <li><a href="<?php echo base_url();?>index.php?about">About</a></li>
                </ul>
           </li>

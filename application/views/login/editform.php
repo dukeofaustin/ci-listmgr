@@ -1,4 +1,4 @@
-<script src="<?php echo base_url();?>assets/js/edituser.js" type="text/javascript"></script>
+<script src="<?php echo base_url();?>assets/js/useredit.js" type="text/javascript"></script>
 <div id="user-area"></div>
 <div id="dlg-edituser" title="<?php echo $title;?>">
     <p class="validateTips">All form fields are required.</p>

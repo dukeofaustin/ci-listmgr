@@ -80,6 +80,7 @@ $route['gallery/upditag'] = 'gallery/upditag';
 $route['gallery/chgsize'] = 'gallery/chgsize';
 $route['gallery/getform'] = 'gallery/getform';
 $route['gallery/images'] = 'gallery/images';
+$route['gallery/cleanup'] = 'gallery/cleanup';
 $route['gallery/(:any)'] = 'gallery/images/$1';
 $route['gallery'] = 'gallery';
 

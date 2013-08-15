@@ -1,5 +1,5 @@
 <script src="<?php echo base_url();?>assets/js/slideshow.js" type="text/javascript"></script>
-   <div style="width: 875px; height: 750px; margin: auto;">	<div id="showcase" class="showcase">
+    <div id="showcase" class="showcase">
        <?php foreach ($image_list as $image):?>
             <!-- Each child div in #showcase with the class .showcase-slide represents a slide. -->
             <div class="showcase-slide">
@@ -21,6 +21,5 @@
                 </div>
             </div>
        <?php endforeach; ?>
-    </div>
   </div>
 </div>

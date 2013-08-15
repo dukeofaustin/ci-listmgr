@@ -64,7 +64,7 @@ h2
 /* Assign the correct showcase height to prevent loading jumps in IE */
 .showcase-load
 {
-	height: 470px; /* Same as showcase javascript option */
+	height: 650px; /* Same as showcase javascript option */
 	overflow: hidden;
 }
 
@@ -83,7 +83,7 @@ h2
 
 	.showcase-content-container
 	{
-        background-color: #CCFFFE; /* wm-modified */		
+        background-color: #ccfffe; /* wm-modified */		
 	}
 	
 	/* Navigation arrows */
@@ -121,17 +121,18 @@ h2
 	/* Content */
 	.showcase-content
 	{
-		background-color: #CCFFFE; /* #000 */
+		background-color: #ccfffe; 
 		text-align: center;
 	}
 		
 		.showcase-content-wrapper
 		{
 			text-align: center;
-			height: 470px;
-			width: 700px;
+			height: 400px;
+			width: 650px;
 			display: table-cell;
 			vertical-align: middle;
+  		    background-color: #ccfffe; 
 		}
 		
 		/* Styling the tooltips */
@@ -159,13 +160,13 @@ h2
 		.showcase-caption
 		{
 			color: #000;
-			background-color: #CCFFFE;
+			background-color: #ccfffe;  /* wm-modified */
 			padding: 8px 15px;
 			text-align: left;
 			position: absolute;
 			bottom: 10px; left: 10px; right: 10px;
 			display: none;
-			/* background-image: url(../images/aw-pix/white-opacity-80.png); */
+			/* background-image: url(../images/aw-pix/white-opacity-80.png); */  /* wm-modified */
 		}
 		
 	.showcase-onepage .showcase-content
@@ -192,14 +193,14 @@ h2
 	
 		.showcase-button-wrapper span.active
 		{
-            color: #FFFFFF;			   /* wm-modified */
+            color: #f5fffa;			   /* wm-modified */
 			background-color: #2191c0; /* wm-modified */
 		}
 	
 	/* Thumbnails */
 	.showcase-thumbnail-container /* Used for backgrounds, no other styling!!! */
 	{
-		background-color: #CCFFFE;
+		background-color: #ccfffe; /*#ccfffe;*/
 	}
 	
 	.showcase-thumbnail-wrapper

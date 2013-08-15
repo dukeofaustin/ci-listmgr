@@ -16,6 +16,7 @@ class Upload extends CI_Controller {
 	{
 		parent::__construct();
 		$this->load->helper(array('form', 'url'));
+        $this->load->library('sitefileutils');        
 	}
 
 	function index()
@@ -75,13 +76,14 @@ class Upload extends CI_Controller {
                 }
                 $flist[] = array('fname' => $recarr['fname'],
                                  'image' => '<img src="'.$destdir.$fname.'" width="120px onClick="showImageDlg();" />',
-                                 'descr' => $recarr['descr'],
+                                 'fsize' => $recarr['fsize'],
                                  'fboth' => $recarr['fboth']
                                  );
+                
                 $first = false;
             }
             
-            $data['upload_data'] = $flist;
+            $data['uploadlist'] = $flist;
             
      	    $this->load->view('templates/header');
 			$this->load->view('upload/uploadok', $data);
@@ -141,7 +143,36 @@ class Upload extends CI_Controller {
                 break; 
         } 
         return $message; 
-    }     
+    }
+    function getFolderContents($dirpath)
+    {
+      $futil = new sitefileutils();
+      $farry = $futil->dirToArray($dirpath);
+      print_r($farry);
+    }
+    function cleanUpUserFiles()
+    {
+       $class = "gallery.php";
+       include_once($class);
+       $gallery = new Gallery();
+       $futil = new sitefileutils();
+       for($k = 0; $k <= 1; $k++) {
+          $dirpath = ($k == 0) ? IMG_USER_PATH : IMG_UPLOAD_PATH;
+          $farry = $futil->dirToArray($dirpath);
+            
+          for($j=0; $j<count($farry); $j++){
+            $file = $dirpath.$farry[$j];
+            if(!$gallery->imagfind($file)){
+              if(unlink($file))
+                $msg = 'Deleted: '.$file;
+              else
+                $msg = 'Could not delete: '.$file;
+              echo '<p>'.$msg;
+             }
+          }
+            
+        }
+    }
 }
 /*
 	function xdo_upload()

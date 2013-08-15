@@ -69,8 +69,8 @@ $(document).ready(function () {
   })
   $('#dialog-imag').wijdialog({
             autoOpen: false,
-            height: 625,
-            width: 525,
+            height: 725,
+            width: 725,
             modal: true,
             open: function() { $('.ui-dialog').css('box-shadow','inset -5px -5px 5px #888');
                   var ifile = getImageName(); // $('#filename').val();
@@ -78,10 +78,18 @@ $(document).ready(function () {
                   console.log('ifile='+ifile);
                   if(ifile != 'undefined' && ifile.length > 3){
                     $("#imagview").empty();
-                    $("#imagview").append('<p><input type="checkbox" class="floatleft" name="cropimg" value="C" /> Crop </p>');
-                    $("#imagview").append('<p><input type="checkbox" class="floatleft" name="rsizimg" value="R" /> Resize </p><br />');
-                    $("#imagview").append('<p><img src="'+ifile+'" id="pix" />');
-                    $("#imagview").append('<div id="subtitle"><label>'+lfile+'</label></div>');
+                    $("#imagview").append('<table border="1" cols="4" id="imgtbl" border="0" cellpadding="1" cellspacing="1">');
+                    $("#imagview").append('<tr><td><input type="checkbox" name="cropimg" value="C" /> Crop </td></tr>');
+                    $("#imagview").append('<tr><td><input type="checkbox" name="rsizimg" value="R" /> Resize </td></tr>');
+                    $("#imagview").append('<tr><td>Rotate Image</td></tr>');
+                    $("#imagview").append('<tr><td colspan="3"><select name="flipimg" style="width: 100px;">');
+                    $("#imagview").append('<option value="90left">90 degrees left</option>');
+                    $("#imagview").append('<option value="90rite">90 degrees right</option>');
+                    $("#imagview").append('<option value="180flip">180 degrees flip</option>');
+                    $("#imagview").append('</select><td/><tr>');
+                    $("#imagview").append('<tr><td colspan="4"> <img src="'+ifile+'" id="pix" /></td></tr>');
+                    $("#imagview").append('<tr><td><div id="subtitle"><label>'+lfile+'</label></div></td></tr>');
+                    $("#imagview").append('</table>');
                     $("#imagview").append('<script language="Javascript">'+
                                                   '$("#pix").Jcrop({' +
                                                                  'aspectRatio: 0,' +
@@ -93,7 +101,8 @@ $(document).ready(function () {
              },
            buttons: {
               'Save' : function() {
-                 updImageSize();
+                 if(updImageSize())
+                   console.log('updImageSize=true');
                  $( this ).wijdialog( 'close' );
               },
               'Close': function() {
@@ -150,7 +159,7 @@ $(document).ready(function () {
             wide  : $('#imgwide').val(),
             hite  : $('#imghite').val()
         }
-        $result = '';
+        result = '';
         $.ajax({
            type: 'POST',
            url: 'index.php?gallery/chgsize',
@@ -158,28 +167,28 @@ $(document).ready(function () {
            cache:false,
            async: false,
            beforeSend: function(){
+              console.log('chgsize-beforeSend');
            },
            success:
              function(data){
                //$('#lastarea').empty(); 
                //$('#lastarea').append(data);
-               $result = data;
+               result = data;
                rtn = true;
                //getImageForm(getImageGroup(), getImageId(), getImageDescr());
            },
            complete: function (xhr, status) {
               if (status === 'error' || !xhr.responseText) {
-                console.log('updateGroup-complete status: Error');
-                $result = status+' ['+xhr.resposeText+']';
-                 
+                console.log('chgsize-complete status: Error');
+                result = status+' ['+xhr.resposeText+']';
               }
            },
            error: function(response) {
-              console.log('updateGroup-ajax-error-status: '+response.status + ' statusText: ' + response.statusText);
-              $result = 'response ['+respons.status+']-['+response.statusText+']';
+              console.log('chgsize-ajax-error-status: '+response.status + ' statusText: ' + response.statusText);
+              result = 'response ['+respons.status+']-['+response.statusText+']';
            }
         });
         $('#lastarea').empty(); 
-        $('#lastarea').append($result); 
+        $('#lastarea').append(result); 
         return rtn;
   }
