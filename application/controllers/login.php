@@ -113,7 +113,6 @@ class Login extends CI_Controller {
         //todo: put in User controller/view -- needed for dev test of user_model->update_user
         $uname = '';
         $email = '';
-        //$usrid = 0;
         $sarr = $this->session->all_userdata();
         if (isset($sarr['uname']) && $sarr['uname'] != "") {
             $uname = $sarr['uname'];
@@ -128,7 +127,9 @@ class Login extends CI_Controller {
             $this->load->view('templates/header', $data);
             $this->load->view('login/editform', $data);
             $this->load->view('templates/footer');
-        }
+        } else {
+			echo 'Username and Email not set';
+		}
     }
 }
 	/*

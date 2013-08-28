@@ -205,8 +205,6 @@
            $fpath .= '/';
          $fname = $finfo['basename'];
          
-         
-         
          $finfo = getimagesize($file);
          list($fwide, $fhite, $ftype, $fboth) = $finfo;
         
@@ -335,21 +333,27 @@
             echo '<div id="itmform" class="ui-widget-content">';
             $frmtitle = $incitem ? 'Image Information' : 'Group Information';        
             echo form_fieldset('<b><style="text-align:center;">'.$frmtitle.'</style></b>');
-            echo '<table cols="2" id="frmtbl" border="0" cellpadding="1" cellspacing="1">';
-            echo '<tr><td colspan="2">';
-            echo '</td></tr><tr>';
-            echo '<p class="validateTips"></p>';
-            echo '</td></tr><td>';     
+            echo '<table cols="3" id="frmtbl" border="0" cellpadding="1" cellspacing="1">';
+            echo '<tr><td colspan="3">';
+            echo '<class="validateTips">';
+            echo '</td></tr><td colspan="3">';     
             $js = 'id="frm-dropdown" class="wijmo-wijdropdown"';
             $ddltitle = $incitem ? 'Assigned Group' : 'Selections';        
             echo form_label($ddltitle,'frm-dropdown');
             echo form_dropdown('frm-dropdown',$grps,$tagid,$js);
-            echo '</td><td rowspan="2">';	    
+            echo '</td>';
+            echo '<tr><td rowspan="2" colspan="2">';
+            echo '<p><div id="img-box" />';
+	        //$file1 = './'.IMG_USER_PATH.$imgrec['fname'];
+            $file = $imgrec['fpath'].$imgrec['fname'];
+	        echo '<img id="img-box" src="'.$file.'" width="180px" onClick="showImageDlg();" />';
+            echo '</td>';
+            echo '<td>';	    
             $ddltitle = $incitem ? 'Allow Access' : 'Selections';        
-            echo form_label($ddltitle,'radiogrp');
+            echo form_label($ddltitle,'radiogrp1');
             $inpattr = array(
-                    'name'     => 'radiobtn',
-                    'id'       => 'radiobtn',
+                    'name'     => 'radiobtn1',
+                    'id'       => 'radiobtn1',
                     'value'    => '0',
                     'class'    => 'wijmo-radio',
                     'style'    => 'float: left',
@@ -357,46 +361,42 @@
             //echo form_label('Public','radiobtn');
             echo form_radio($inpattr).' Public';            
             $inpattr = array(
-                    'name'     => 'radiobtn',
-                    'id'       => 'radiobtn',
+                    'name'     => 'radiobtn1',
+                    'id'       => 'radiobtn1',
                     'value'    => '1',
                     'class'    => 'wijmo-radio',
                     'style'    => 'float: left',
                     'checked'  => $allow == 1 ? true : false );
             echo form_radio($inpattr).' Private';
-            
-            //if(TEST_MODE) {
-            //   echo form_label($fboth);
-            //   echo form_label('<p>'.$fpath);
-            //}
-            /*
             $ddltitle = 'Adjust Image';
-            echo form_label($ddltitle,'chkboxgrp');
+            echo form_label($ddltitle,'radiogrp2');
             $inpattr = array(
-                    'name'     => 'cropimg',
+                    'name'     => 'radiobtn2',
                     'id'       => 'cropimg',
                     'value'    => 'C',
-                    'class'    => 'wijmo-checkbox',
+                    'class'    => 'wijmo-radio',
                     'style'    => 'float: left',
                    'checked'   => false );
-            //echo form_label('Public','radiobtn');
-            echo form_checkbox($inpattr).' Crop';            
-            $inpattr = array(
-                    'name'     => 'rsizimg',
+            echo form_radio($inpattr).' Crop';            
+            /*$inpattr = array(
+                    'name'     => 'radiobtn2',
                     'id'       => 'rsizimg',
-                    'value'    => 'R',
-                    'class'    => 'wijmo-checkbox',
+                    'value'    => 'S',
+                    'class'    => 'wijmo-radio',
                     'style'    => 'float: left',
                    'checked'   => false );
-            //echo form_label('Private','radiobtn');
-            echo form_checkbox($inpattr).' Resize';
-            */
-            echo '</td></tr><tr><td colspan="2">';
-            echo '<p><div id="img-box" />';
-	        //$file1 = './'.IMG_USER_PATH.$imgrec['fname'];
-            $file = $imgrec['fpath'].$imgrec['fname'];
-	        echo '<img id="img-box" src="'.$file.'" width="140px" onClick="showImageDlg();" />';
-            echo '</td></tr><tr><td colspan="2">';	    
+            echo form_radio($inpattr).' Resize';*/
+            $inpattr = array(
+                    'name'     => 'radiobtn2',
+                    'id'       => 'flipimg',
+                    'value'    => 'F',
+                    'class'    => 'wijmo-radio',
+                    'style'    => 'float: left',
+                   'checked'   => false );
+            echo form_radio($inpattr).' Flip';
+            echo '</td></tr>';
+            echo '<tr><td colspan="3"></td></tr><tr><td colspan="3">';
+            
             $ddltitle = $incitem ? 'Image Description' : 'Group Description';        
             echo form_label($ddltitle,'descr');
             $inpattr = array(
@@ -412,7 +412,7 @@
 	    
             //echo '<textarea id="descr" rows="3" cols="50" class="text ui-widget-content ui-corner-all" value="'.$descr.'"/>';
             echo '</td></tr>';
-            echo '<tr><td colspan="2">';
+            echo '<tr><td colspan="3">';
             echo '<input type="hidden" id="imgidnbr" value="'.$imgid.'"/>';
             echo '<input type="hidden" id="filename" value="'.$file.'"/>';
             echo '<input type="hidden" id="tagidnbr" value="'.$tagid.'"/>';
@@ -421,7 +421,7 @@
             echo '<input type="hidden" id="imgwide" value="'.$width.'"/>';
             echo '<input type="hidden" id="imghite" value="'.$height.'"/>';
             
-            echo '</td></tr><tr><td colspan="2">';
+            echo '</td></tr><tr><td colspan="3">';
             $btnattr = array( 'name' => 'delete',
                               'id' => 'frmdel',
                               'class' => 'frmdel',
@@ -553,10 +553,10 @@
       echo '<p>'.$msg;
       echo '<p> -------------------------- <p>';       
     }
-    public function chgsize()
+    public function modimage()
     {
       $rtn = false;
-      $rtnmsg = ' * ';
+      $rtnmsg = 'nada';
       $origfile = $this->input->post('ifile');
       $newfile = $origfile;
       $imgid = $this->input->post('imgid');
@@ -569,88 +569,121 @@
       $wide  = (int) $this->input->post('wide'); 
       $hite  = (int) $this->input->post('hite');
       
-      if((!isset($wide) || $wide == 0) ||
-         (!isset($hite) || $hite == 0))
+      //verify valid emode
+      $validmodes = 'SCFLRV';
+      if(stripos($validmodes,$emode) !== false)
       {
-         $fileinfo = getimagesize($origfile);
-         $wide = $fileinfo[0];
-         $hite = $fileinfo[1];
-      }
-
-      //$this->_test_file_exists($origfile);
-      if(stripos($origfile,IMG_USER_PATH) === false &&
-         stripos($origfile,IMG_UPLOAD_PATH) === false)
-      {
-         $newfile = IMG_USER_PATH.$origfile;
-      } elseif(stripos($origfile,IMG_UPLOAD_PATH) !== false &&
-                stripos($origfile,IMG_USER_PATH) === false)
-      {
-         $newfile = str_replace(IMG_UPLOAD_PATH, IMG_USER_PATH,$origfile);
-      }
-
-      $renfile = $this->_get_new_filename($origfile);
-      if(file_exists($origfile) && !(file_exists($renfile))) {
-          $rtnmsg = 'file_exists(orig) && !file_exists(newfile) ';
-          if(rename('./'.$origfile, './'.$renfile)){
-            $rtnmsg .= ' <p> rename worked! ';
-             if(file_exists('./'.$renfile)){
-                $origfile = $renfile;
-             }
-          } else
-            $rtnmsg .= ' <p> rename failed! ';
-      } else {
-          $rtnmsg = 'FAILD-file_exists('.$origfile.') && !file_exists('.$renfile.') ';
-      }
-
-      $rtn = file_exists($renfile);
-
-      if($rtn)
-      {
-        $rtn = false;  
-        $quality = 85;
-        $rtnmsg = '';
-        if($emode == 'R')
-        {
-            $newsize = $this->_get_target_size($wide, $hite);
-            $newwide = $newsize['width'];
-            $newhite = $newsize['height'];
-            
-            if($this->_smart_resize_image($renfile,
-                                           $newwide,
-                                           $newhite,
-                                               true,
-                                           $newfile,
-                                              false,
-                                              false,
-                                            $quality)) {
-              $rtnmsg = 'successfully resized '.$newfile;
-              $rtn = true;
+            if((!isset($wide) || $wide == 0) ||
+               (!isset($hite) || $hite == 0))
+           {
+              $fileinfo = getimagesize($origfile);
+              $wide = $fileinfo[0];
+              $hite = $fileinfo[1];
+           }
+     
+           //$this->_test_file_exists($origfile);
+           if(stripos($origfile,IMG_USER_PATH) === false &&
+              stripos($origfile,IMG_UPLOAD_PATH) === false)
+           {
+              $newfile = IMG_USER_PATH.$origfile;
+           } elseif(stripos($origfile,IMG_UPLOAD_PATH) !== false &&
+                     stripos($origfile,IMG_USER_PATH) === false)
+           {
+              $newfile = str_replace(IMG_UPLOAD_PATH, IMG_USER_PATH,$origfile);
+           }
+          
+           $renfile = $this->_get_new_filename($origfile);
+           
+           if(file_exists($origfile) && !(file_exists($renfile))) {
+               if(rename('./'.$origfile, './'.$renfile)){
+                  $rtnmsg .= ' <p> rename worked! ';
+                  if(file_exists('./'.$renfile)){
+                     $origfile = $renfile;
+                  }
+               } else
+                 $rtnmsg .= ' <p> rename failed! ';
            } else {
-              $rtnmsg = 'error resizing '.$newfile;
-              trigger_error($rtnmsg);
-            }
-        } else {                                            
-            if($this->_crop_image($renfile,
-                                   $newfile,
-                                      $topx,
-                                      $topy,
-                                      $botx,
-                                      $boty))
-            {
-                $rtnmsg = 'successfully cropped '. $newfile;
-                $rtn = true;
-            } else {
-                $rtnmsg = 'error croping '.$newfile;
-                trigger_error($rtnmsg);
-            }
-        }
-        if($rtn){
-            //TODO: update fname and fpath with $newfile 20130812
-            $rtn = $this->updrecord($imgid, $newfile);
-        }
-      } else {
-         $rtnmsg = 'error croping '.$newfile;
-         trigger_error($renfile.' does not exist');
+               $rtnmsg = 'file_exists('.$origfile.')= ';
+               $rtnmsg .= (file_exists($origfile)) ? 'does exist' : 'does not exist';
+               $rtnmsg .= '!(file_exists('.$renfile.')= ';
+               $rtnmsg .= (!file_exists($renfile)) ? 'true-does NOT exist' : 'false-does exist';
+           }
+           $rtn = file_exists($renfile);
+
+           if($rtn)
+           {
+             $rtn = false;  
+             $quality = 85;
+             if($emode == 'S') // resize -- do on upload -- rather than user choice
+             {
+                 $newsize = $this->_get_target_size($wide, $hite);
+                 $newwide = $newsize['width'];
+                 $newhite = $newsize['height'];
+                 
+                 if($this->_smart_resize_image($renfile,
+                                               $newwide,
+                                               $newhite,
+                                                   true,
+                                               $newfile,
+                                                  false,
+                                                  false,
+                                                $quality)) {
+                   $rtnmsg = 'successfully resized '.$newfile;
+                   $rtn = true;
+                } else {
+                   $rtnmsg = 'error resizing '.$newfile;
+                   $this->_logerror('error',$rtnmsg);
+                 }
+             } elseif($emode == 'C') { //crop
+                 if($this->_crop_image($renfile,
+                                       $newfile,
+                                          $topx,
+                                          $topy,
+                                          $botx,
+                                          $boty))
+                 {
+                     $rtnmsg = 'successfully cropped '. $newfile;
+                     $rtn = true;
+                 } else {
+                     $rtnmsg = 'error croping '.$newfile;
+                     $this->_logerror('error',$rtnmsg);
+                 }
+             } elseif($emode != 'X') {
+                $degree = 0;
+                switch($emode){
+                  case('R'): //90 right
+                     $degree = 90; 
+                     break;
+                  case('L'): //90 left
+                     $degree = 270;
+                     break;
+                  case('V'): //flip vertically
+                     $degree = 180;
+                     break;
+                  default:
+                     break;
+                }
+                if($degree != 0) {
+                  if($this->_rotateImage($origfile, $newfile, $degrees, $quality, $save)) {
+                     $rtnmsg = 'successfully rotated '. $newfile;
+                     $rtn = true;
+                  } else {
+                     $rtnmsg = 'error rotating '.$newfile;
+                     $this->_logerror('error',$rtnmsg);
+                  }
+                 
+                }
+             }
+             if($rtn){
+                 //TODO: update fname and fpath with $newfile 20130812
+                 if($this->_string_beginswith($newfile,'.'))
+                    $newfile = substr($newfile,1);
+                 $rtn = $this->updrecord($imgid, $newfile);
+             }
+           } else {
+              $rtnmsg = 'invalid mode passed to method';
+              $this->_logerror('error',$rtnmsg);
+           }
       }
       echo $rtnmsg;
     }
@@ -660,6 +693,10 @@
     function _string_endswith($word, $end)
     {
        return (strpos($word, $end, strlen($word) - strlen($end)) !== false);
+    }
+    function _string_beginswith($word, $beg)
+    {
+       return (strpos($word, $beg, 0) !== false);
     }
     /**
      * getFileInfo
@@ -702,7 +739,7 @@
         $dr  = substr($pfile,0,($dir+1)); 
         $arr = explode('/',$pfile);
         $fName = trim($arr[(count($arr) - 1)],$ext);
-        $rName = '0_'.$fName;
+        $rName = '0__'.$fName;
         $rtn_name = str_replace($fName,$rName,$pfile);
         $exist = file_exists($rtn_name);
         if($exist)
@@ -758,20 +795,66 @@
            $newImage = $manipulator->crop($x1, $y1, $x2, $y2);
            $manipulator->save($newfile);
            $rtn = file_exists($newfile);
-                //$centreX = round($width / 2);
-                //$centreY = round($height / 2);
-                // our dimensions will be 200x130
-                //$x1 = $centreX - 100; // 200 / 2
-                //$y1 = $centreY - 65; // 130 / 2
-                //$x2 = $centreX + 100; // 200 / 2
-                //$y2 = $centreY + 65; // 130 / 2
-                // center cropping to 200x130
-                // saving file to uploads folder
-                echo 'Done ...';
         }
         return $rtn;
     }
+    /*
+    * ref: http://www.nodstrum.com/2006/12/09/image-manipulation-using-php/
+    * rotateImage function
+    * @param $file - image file path and file name 
+    * @param $degrees - degrees to rotate (anticlockwise i think) by
+    * @param $quality - image quality
+    * @param $save - save or not (if you wanted to output to a temp to preview, if not used, leave as 1
+    */
+    function _rotateImage($origfile, $degrees, $quality, $save = true)
+    {
+        $finfo = $this->_get_fileinfo($origfile);
+
+        // Open the original image.
+        list($width, $height, $type, $attr) = getimagesize("$origfile");
+
+        $fpath = $finfo['dirname'];
+        if(!$this->_string_endswith($fpath,'/'))
+           $fpath .= '/';
+        $fname = $finfo['basename'];
+        $ftype = $finfo['extension'];
         
+        # Loading image to memory according to type
+        switch ( $type ) {
+          case IMAGETYPE_GIF:
+            $image = imagecreatefromgif($origfile) or $this->_logerror('error','opening '.$origfile);
+            break;
+          case IMAGETYPE_JPEG:
+            $image = imagecreatefromjpeg($origfile) or $this->_logerror('error','opening '.$origfile);
+            break;
+          case IMAGETYPE_PNG:
+            $image = imagecreatefrompng($origfile) or $this->_logerror('error','opening '.$origfile);
+            break;
+          default: return false;
+        }
+        
+     
+        // Resample the image.
+        $tempImg = imagecreatetruecolor($width, $height) or $this->_logerror('error','creating temporary image for processing');
+        imagecopyresized($tempImg, $origfile, 0, 0, 0, 0, $width, $height, $width, $height) or $this->_logerror('error','cannot resize '.$origfile);
+     
+        // Rotate the image.
+        $rotate = imagerotate($origfile, $degrees, 0);
+     
+        // Save.
+        if($save)  // always true unless you are returning a view before saving interactively
+        {
+            // Create the new file name.
+            imagejpeg($rotate, $newfile, $quality) or $this->_logerror('error','saving image');
+        }
+     
+        // Clean up.
+        imagedestroy($origfile);
+        rename($newfile, $origfile);
+        imagedestroy($tempImg);
+        return true;
+    }
+         
     /**
      * easy image resize function
      * @param  $file - file name to resize
@@ -852,13 +935,13 @@
             $mime = image_type_to_mime_type($info[2]);
             header("Content-type: $mime");
             $output = NULL;
-          break;
+            break;
           case 'file':
             $output = $file;
-          break;
+             break;
           case 'return':
             return $image_resized;
-          break;
+            break;
           default:
           break;
        }
@@ -903,5 +986,16 @@
         $this->load->view('pages/utility',$data);
 	    $this->load->view('templates/footer');
     }
-      
+    /*
+     * logerror function
+     * @param $which - message level must be 'error', 'debug' or 'info' per CI (see link below)
+     * @param $errmsg - error to log
+     * ref: http://ellislab.com/codeigniter/user-guide/general/errors.html 
+     */
+    function _logerror($which,$errmsg)
+    {
+        $thisclass = basename(__FILE__, '.php');
+        $logmsg = $thisclass.'-'.$errmsg;
+        log_error($thisclass,$logmsg);
+    }
 } //end class

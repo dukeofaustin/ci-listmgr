@@ -78,31 +78,13 @@ $(document).ready(function () {
                   console.log('ifile='+ifile);
                   if(ifile != 'undefined' && ifile.length > 3){
                     $("#imagview").empty();
-                    $("#imagview").append('<table border="1" cols="4" id="imgtbl" border="0" cellpadding="1" cellspacing="1">');
-                    $("#imagview").append('<tr><td><input type="checkbox" name="cropimg" value="C" /> Crop </td></tr>');
-                    $("#imagview").append('<tr><td><input type="checkbox" name="rsizimg" value="R" /> Resize </td></tr>');
-                    $("#imagview").append('<tr><td>Rotate Image</td></tr>');
-                    $("#imagview").append('<tr><td colspan="3"><select name="flipimg" style="width: 100px;">');
-                    $("#imagview").append('<option value="90left">90 degrees left</option>');
-                    $("#imagview").append('<option value="90rite">90 degrees right</option>');
-                    $("#imagview").append('<option value="180flip">180 degrees flip</option>');
-                    $("#imagview").append('</select><td/><tr>');
-                    $("#imagview").append('<tr><td colspan="4"> <img src="'+ifile+'" id="pix" /></td></tr>');
-                    $("#imagview").append('<tr><td><div id="subtitle"><label>'+lfile+'</label></div></td></tr>');
-                    $("#imagview").append('</table>');
-                    $("#imagview").append('<script language="Javascript">'+
-                                                  '$("#pix").Jcrop({' +
-                                                                 'aspectRatio: 0,' +
-                                                                   'bgOpacity: .3,' +
-                                                                     'bgColor: "lightblue",'+
-                                                                    'onSelect: updateCoords});'+
-                                           '</script>');
+                    $('#imagview').append(formatImageDlg(ifile, lfile));
                   }
              },
-           buttons: {
+            buttons: {
               'Save' : function() {
-                 if(updImageSize())
-                   console.log('updImageSize=true');
+                 if(modifyImage())
+                   console.log('modifyImage=true');
                  $( this ).wijdialog( 'close' );
               },
               'Close': function() {
@@ -111,6 +93,40 @@ $(document).ready(function () {
            }
   });     
 })
+  function enableImageCrop()
+  {
+     var rtn = '<script language="Javascript">'+
+                  '$("#pix").Jcrop({aspectRatio: 0,' +
+                                   'bgOpacity: .3,' +
+                                   'bgColor: "lightblue",'+ 
+                                   'onSelect: updateCoords});' +
+                '</script>';
+     return rtn;            
+  }
+  function formatImageDlg(imgfile, lblfile)
+  {
+    //get radio button (Resize/Crop/Flip)
+    var tag = $('input:radio[name=radiobtn2]:checked').val()
+    var tbl = '<div id="imgtbl"><table cols="1" border="0" cellpadding="1" cellspacing="1">';
+    if(tag == 'F') {
+        tbl = tbl + '<tr><td><label>Rotate Image</>&nbsp;&nbsp;';
+        tbl = tbl + '<select name="img-dropdown" id="img-dropdown" style="width: 200px;" class="wijmo-wijdropdown">';
+        tbl = tbl + '<option value="X">No change</option>';
+        tbl = tbl + '<option value="L">Flip 90 degrees left</option>';
+        tbl = tbl + '<option value="R">Flip 90 degrees right</option>';
+        tbl = tbl + '<option value="V">Flip 180 degrees</option>';
+        tbl = tbl + '</select></td></tr>';
+        tbl = tbl + '<tr><td></td></tr>';
+     }
+     tbl = tbl + '<tr><td> <img src="'+imgfile+'" id="pix" /></td></tr>';
+     tbl = tbl + '<tr><td><div id="subtitle"><label>'+lblfile+'</label></div></td></tr>';
+     tbl = tbl + '</table></div>';
+     if(tag == 'C'){
+         tbl = tbl + enableImageCrop();
+     }
+    return tbl;
+  }
+        
   function updateCoords(c)
   {
       $('#x').val(c.x);
@@ -136,21 +152,29 @@ $(document).ready(function () {
   {
     return $('#descr').val();
   }
-  function getImageChange()
+  function rtnSelectedIdStr(which)
   {
     var rtn = '';
-    $("input[type='checkbox']:checked").each(function(){
-        rtn = $(this).val();
-    });
-   return rtn;
+    $('#' + which + '-dropdown option:selected').each(function () {
+  	       rtn = $(this).val();
+     });
+     return rtn;
+  }
+  function getImgEditMode()
+  {
+    var rtn = $('input:radio[name=radiobtn2]:checked').val()
+    if(rtn == 'F') {
+       rtn = rtnSelectedIdStr('img');
+    }
+    return rtn;
   }  
-  function updImageSize()
+  function modifyImage()
   {
     var rtn = false;
     var params = {
             ifile : getImageName(),  
             imgid : getImageId(),
-            emode : getImageChange(),
+            emode : getImgEditMode(),
             which : 'item',
             topx  : $('#x').val(),
             topy  : $('#y').val(),
@@ -159,32 +183,30 @@ $(document).ready(function () {
             wide  : $('#imgwide').val(),
             hite  : $('#imghite').val()
         }
-        result = '';
+        result = 'pre-modimage-call';
         $.ajax({
            type: 'POST',
-           url: 'index.php?gallery/chgsize',
+           url: 'index.php?gallery/modimage',
            data: params,
            cache:false,
            async: false,
            beforeSend: function(){
-              console.log('chgsize-beforeSend');
+              //console.log('modimage-beforeSend');
            },
            success:
              function(data){
-               //$('#lastarea').empty(); 
-               //$('#lastarea').append(data);
                result = data;
+               console.log('modimage-data='+data);
                rtn = true;
-               //getImageForm(getImageGroup(), getImageId(), getImageDescr());
            },
            complete: function (xhr, status) {
               if (status === 'error' || !xhr.responseText) {
-                console.log('chgsize-complete status: Error');
+                console.log('modimage-complete status: Error');
                 result = status+' ['+xhr.resposeText+']';
               }
            },
            error: function(response) {
-              console.log('chgsize-ajax-error-status: '+response.status + ' statusText: ' + response.statusText);
+              console.log('modimage-ajax-error-status: '+response.status + ' statusText: ' + response.statusText);
               result = 'response ['+respons.status+']-['+response.statusText+']';
            }
         });
