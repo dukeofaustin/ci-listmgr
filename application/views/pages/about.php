@@ -23,10 +23,10 @@
         
     </ul>
     <p>
-    <p><div class="devnote">Dev Note: start with testing modimage in image grid</div></p>
+    <p><div class="devnote">Dev Note: start with gallery_model line #153</div></p>
     <div class="nodots">
-    <ul> <li>1) Incorp Resize during upload</li>
-         <li>2) Crop and/or flip in dialog</li>
+    <ul> <li>1) For no data returned in Slideshow</li>
+         <li>2) Then test uploading</li>
     </ul>
     </div>
 </p>

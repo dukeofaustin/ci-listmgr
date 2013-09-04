@@ -1,7 +1,8 @@
 <?php
 /*
  *Devnotes:
- *Resize (KB/MB) on upload: http://apptha.com/blog/how-to-reduce-image-file-size-while-uploading-using-php-code/
+ *Resize (KB/MB) on upload - ref: http://apptha.com/blog/how-to-reduce-image-file-size-while-uploading-using-php-code/
+ * ref: http://phpsense.com/2007/php-file-uploading/ <---multiple file upload structure etc
  *20130617 TODO: After insert, present image thumbnail and prompt for descr using News view type
 */
 class Upload extends CI_Controller {
@@ -54,14 +55,14 @@ class Upload extends CI_Controller {
                 $recarr = $this->gallery_model->get_imagedata(0); // get full record structure
                 $recarr['fname'] = $uplarr[$i]['file_name'];
                 $recarr['ftype'] = $uplarr[$i]['file_type'];
-                $recarr['fpath'] = $config['upload_path']; //$uplarr[$i]['full_path'];
+                $recarr['fpath'] = (substr($destdir,0,1) == './') ? substr($destdir,2) : $destdir;
                 $recarr['fsize'] = $uplarr[$i]['file_size'];
                 $recarr['ispic'] = $uplarr[$i]['is_image'];
                 $recarr['fwide'] = $uplarr[$i]['image_width'];
                 $recarr['fhite'] = $uplarr[$i]['image_height'];
                 $recarr['fboth'] = $uplarr[$i]['image_size_str'];
                 //Insert in database
-                $message = $this->gallery_model->update_image(INSERT_REC, $recarr);
+                $message = $this->gallery_model->update_image(INSERT_REC, $recarr, ' initial upload');
                 $fname = $recarr['fname'];
                 $image = $fname;
                 $pos = strpos($fname,'.');
@@ -174,111 +175,4 @@ class Upload extends CI_Controller {
         }
     }
 }
-/*
-	function xdo_upload()
-	{
-		$config['upload_path'] = './'.IMG_USER_PATH;
-		$config['allowed_types'] = 'gif|jpg|png';
-		$config['max_size']	= '100';
-		$config['max_width']  = '1024';
-		$config['max_height']  = '768';
-		$this->load->library('upload', $config);
 
-		if ( ! $this->upload->do_upload())
-		{
-			$error = array('error' => $this->upload->display_errors());
-			$this->load->view('upload/upload_form', $error);
-		}
-		else
-		{
-			$data = array('upload_data' => $this->upload->data());
-    	    $this->load->view('templates/header');
-			$this->load->view('upload/upload_success', $data);
-       	    $this->load->view('templates/footer');
-		}
-		
-	}
-	function single_imagefile()
-	{
-        //ref: http://phpsense.com/2007/php-file-uploading/ <---multiple file upload structure etc
-
-		$config['upload_path'] = './'.IMG_USER_PATH;
-		$config['allowed_types'] = 'gif|jpeg|jpg|png';
-		$config['max_size']	= '1000';
-		$config['max_width']  = '1024';
-		$config['max_height']  = '768';
-		$this->load->library('upload', $config);
-
-        if($_FILES['Filedata']['error'] == UPLOAD_ERR_OK)
-        {
-            echo 'Upload successful';
-            echo print_r($_FILES);
-        } else {
-            echo 'File upload error';
-        }
-
-		if (!$this->upload->do_upload())
-		{
-			$error = array('error' => $this->upload->display_errors());
-			$this->load->view('upload/uploadfrm', $error);
-		}
-		else
-		{
-			$data = array('upload_data' => $this->upload->data());
-            $fpath = $upload_data['full_path'];
-            $fname = $upload_data['file_name']; 
-            $ftype = $upload_data['file_ext']; 
-            $fsize = $upload_data['file_size'];
-            $ispic = $upload_data['is_image'];
-            $fwide = $upload_data['image_width'];
-            $fhite = $upload_data['image_height'];
-            $fboth = $upload_data['image_size_str'];
-            
-     	    $this->load->view('templates/header');
-			$this->load->view('upload/uploadok', $data);
-       	    $this->load->view('templates/footer');
-		}
-		
-	}
-    function _do_upload()
-    {
-		$info = array();
-
-		// compatibility for flash uploader and browser not supporting multiple upload
-		if (is_array($_FILES['Filedata']) && !is_array($_FILES['Filedata']['tmp_name']))
-		{
-			$_FILES['Filedata']['tmp_name'] = array($_FILES['Filedata']['tmp_name']);
-			$_FILES['Filedata']['name'] = array($_FILES['Filedata']['name']);
-		}
-
-		for ($file = 0; $file < count($_FILES['Filedata']['tmp_name']); $file++)
-		{
-			$valid = explode('|', 'png|zip|rar|gif|jpg|jpeg');
-			if (!in_array(strtolower(substr($_FILES['Filedata']['name'][$file], -3)), $valid))
-				continue;
-
-			if (!in_array(strtolower(substr($_FILES['Filedata']['name'][$file], -3)), array('zip', 'rar')))
-				$pages = $this->files_model->page($_FILES['Filedata']['tmp_name'][$file], $_FILES['Filedata']['name'][$file], $this->input->post('chapter_id'));
-			else
-				$pages = $this->files_model->compressed_chapter($_FILES['Filedata']['tmp_name'][$file], $_FILES['Filedata']['name'][$file], $this->input->post('chapter_id'));
-
-			foreach ($pages as $page)
-			{
-				$info[] = array(
-					'name' => $page->filename,
-					'size' => $page->size,
-					'url' => $page->page_url(),
-					'thumbnail_url' => $page->page_url(TRUE),
-					'delete_url' => site_url("admin/series/delete/page"),
-					'delete_data' => $page->id,
-					'delete_type' => 'POST'
-				);
-			}
-		}
-
-		// return a json array
-		$this->output->set_output(json_encode($info));
-		return true;
-    }
-*/
-?>

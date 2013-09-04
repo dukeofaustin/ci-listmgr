@@ -28,6 +28,7 @@
                       <li><a href="<?php echo base_url();?>index.php?gallery/cleanup">Cleanup User Files</a></li>
                     </ul>
                  </li>
+                 <li><a href="<?php echo base_url();?>index.php?smileys">Smileys</a></li>
                  <li><a href="<?php echo base_url();?>index.php?about">About</a></li>
                </ul>
           </li>

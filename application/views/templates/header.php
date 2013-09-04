@@ -53,10 +53,8 @@
     * @return  void
    */
     function verifyAutorization() {
-
-        if ((isset($_COOKIE['authorized']) &&
-                  (!$_COOKIE['authorized'] == "1")) ||
-             !isset($_COOKIE['authorized'])) {
+        $authorized = isset($_COOKIE['authorized']) && $_COOKIE['authorized'] == "1";
+        if (!$authorized) {
 			header("Location: index.php?login");
         }
     }

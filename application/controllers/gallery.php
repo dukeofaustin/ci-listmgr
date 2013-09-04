@@ -14,7 +14,8 @@
         parent::__construct();
         $this->load->model('gallery_model' );
         $this->load->library('session');  // for flash data
-        $this->load->library('sitefileutils');  // for cleanup      
+        $this->load->library('sitefileutils');  // for cleanup
+        $this->load->library('siteprocs'); // for common string functions
 	    $this->load->helper(array('url','html'));
     }
     
@@ -24,7 +25,10 @@
         $query = $this->gallery_model->get_imagelist('tbl_images.descr != "<none>"'); //no filter
         $data['image_list'] = $query;
         $this->load->view('templates/header', $data);
-	    $this->load->view('gallery/slideshow', $data);
+        if($query)
+	       $this->load->view('gallery/slideshow', $data);
+        else
+	       $this->load->view('pages/about', $data);
 	    $this->load->view('templates/footer');
     }
 
@@ -32,6 +36,8 @@
     {
          $this->load->library('pagination');
          $this->load->library('table');
+         $sproc = new siteprocs();
+         
          $data['listtype'] = 'Pictures';
          $ajaxcall = false;
          /* AJAX check  */
@@ -49,6 +55,7 @@
          $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
          // generate table data
          $query = $this->gallery_model->get_allimages($config["per_page"], $page);
+         $noresult = $sproc->isEmpty($query);
          $tmplate = array ('table_open'  => '<table id="gridtable" border="1" cellpadding="1" cellspacing="1" class="ui-widget-content">' );
          $this->table->set_template($tmplate);
          $this->table->set_empty('&nbsp;');
@@ -57,14 +64,18 @@
              '1' => array('data' => 'Description', 'style' => 'width: 75%;'),
              '2' => array('data' => 'Edit', 'style' => 'text-align: center; width: 5%;'));
          $this->table->set_heading($tbl_heading);
-         
-         foreach($query as $row) {
-            $say = $this->_trim_descr($row->type, self::MAX_TDESC);
-            $txt = $say.'</td><td>';
-            $say = $this->_trim_descr($row->item, self::MAX_PDESC);
-            $txt .= $say.'</td>';
-            $act = '<td><a class="editthis" href="#" onclick="javascript:getImageForm('.$row->tid.','.$row->pid.',\''.$row->item.'\')">  <img src="'.base_url().'images/edit.gif" width="12" height="12"/>         </a>';
-            $this->table->add_row($txt.$act);
+         if($noresult) {
+            $txt = '?</td><td style="text-align: center;"><b>No results returned</b></td><td>?';
+            $this->table->add_row($txt);
+         } else {
+            foreach($query as $row) {
+               $say = $this->_trim_descr($row->type, self::MAX_TDESC);
+               $txt = $say.'</td><td>';
+               $say = $this->_trim_descr($row->item, self::MAX_PDESC);
+               $txt .= $say.'</td>';
+               $act = '<td><a class="editthis" href="#" onclick="javascript:getImageForm('.$row->tid.','.$row->pid.',\''.$row->item.'\')">  <img src="'.base_url().'images/edit.gif" width="12" height="12"/>         </a>';
+               $this->table->add_row($txt.$act);
+            }
          }
          if($ajaxcall){
             $this->load->view('gallery/imagepage',$data);
@@ -152,7 +163,7 @@
             $this->load->view('templates/footer');
          }
     }
-    function updimage()
+    function updimage($udatemsg = '')
     {
       $message = 'pre-updimage';
       $emode = $this->input->post('emode'); //? $this->input->post('emode') : '';
@@ -160,7 +171,9 @@
       $usrid = $this->_get_userid();
       // default all fields with stored values
       $imgrec = $this->gallery_model->get_imagedata($imgid);
-
+      
+      $udatemsg = isset($udatemsg) ? $udatemsg : '';
+      
       if(isset($emode) && isset($imgid))
       {
          
@@ -174,7 +187,7 @@
         $imgrec['allow'] = ($imgrec['allow'] == $allow) ? $imgrec['allow'] : $allow;
         $imgrec['ispic'] = 0;
         $message = 'pre-update_image()';
-        $message = $this->gallery_model->update_image($emode, $imgrec);
+        $message = $this->gallery_model->update_image($emode, $imgrec, $udatemsg);
       }
       if(TEST_MODE) {
         $message .= ' usrid('.$usrid.') imgid('.$imgid.') tagid('.$tagid.')';
@@ -183,7 +196,7 @@
       }
       echo $message;
     }
-    function updrecord($imgid = 0, $file)
+    function updrecord($imgid = 0, $file, $udatemsg)
     {
       $rtn = false;
       $message = 'pre-updrecord';
@@ -191,10 +204,10 @@
       // default all fields with stored values
       $imgrec = $this->gallery_model->get_imagedata($imgid);
       $imgrec['ispic'] = 8;   
+      $emode = UPDATE_REC; 
       
       if($imgrec && $imgid > 0 && file_exists($file))
       {
-         $emode = UPDATE_REC; 
          $fsize = filesize($file);
          if($fsize > 1000)
            $fsize = (int)($fsize/1000);
@@ -225,7 +238,7 @@
          if(strlen($fboth) > 0)
            $imgrec['fboth'] = ($imgrec['fboth'] == $fboth) ? $imgrec['fboth'] : $fboth;
          
-         $message = $this->gallery_model->update_image($emode, $imgrec);
+         $message = $this->gallery_model->update_image($emode, $imgrec, $udatemsg);
          $rtn = stripos($message,'error') === false ? true : false;
       }
       if(TEST_MODE) {
@@ -447,6 +460,115 @@
         }
       return;
     }
+    public function modimage()
+    {
+      $rtn = false;
+      $rtnmsg = 'nada';
+      $origfile = $this->input->post('ifile');
+      $imgid = $this->input->post('imgid');
+      $emode = $this->input->post('emode');
+      $which = $this->input->post('which'); 
+      $topx  = $this->input->post('topx'); 
+      $topy  = $this->input->post('topy'); 
+      $botx  = $this->input->post('botx'); 
+      $boty  = $this->input->post('boty'); 
+      $wide  = (int) $this->input->post('wide'); 
+      $hite  = (int) $this->input->post('hite');
+      
+      $validmodes = 'SCFLRV';
+      $findstr = strstr($validmodes,$emode);
+      if(strlen($findstr) > 0)
+      {
+           if((!isset($wide) || $wide == 0) ||
+               (!isset($hite) || $hite == 0))
+           {
+              $fileinfo = getimagesize($origfile);
+              $wide = $fileinfo[0];
+              $hite = $fileinfo[1];
+           }
+           
+           $newfile = $this->_get_new_filename($origfile);
+
+           $rtn = is_file($origfile) && !is_file($newfile);
+              
+           if($rtn)
+           {
+             $rtn = false;  
+             $quality = 90;
+             if($emode == 'S') // resize -- do on upload -- rather than user choice
+             {
+                 $newsize = $this->_get_target_size($wide, $hite);
+                 $newwide = $newsize['width'];
+                 $newhite = $newsize['height'];
+                 $delorig = true;
+                 $newfile = 'file'; // means delete origfile and use origfile name for newfile
+                 if($this->_smart_resize_image($origfile,
+                                               $newwide,
+                                               $newhite,
+                                               $delorig,
+                                               $newfile,
+                                                  false,
+                                                  false,
+                                                $quality)) {
+                   $rtnmsg = 'successfully resized '.$origfile;
+                   $rtn = true;
+                } else {
+                   $rtnmsg = 'error resizing '.$origfile;
+                   $this->_logerror('error',$rtnmsg);
+                 }
+             } elseif($emode == 'C') { //crop
+                 if($this->_crop_image($origfile,
+                                          $topx,
+                                          $topy,
+                                          $botx,
+                                          $boty))
+                 {
+                     $rtnmsg = 'successfully cropped '. $origfile;
+                     $rtn = true;
+                 } else {
+                     $rtnmsg = 'error croping '.$origfile;
+                     $this->_logerror('error',$rtnmsg);
+                 }
+             } elseif($emode != 'X') {
+                $degrees = 0;
+                switch($emode){
+                  case('L'): //90 left counterclockwise
+                     $degrees = 90;
+                     break;
+                  case('V'): //flip vertically counterclockwise
+                     $degrees = 180;
+                     break;
+                  case('R'): //90 right counterclockwise
+                     $degrees = 270; 
+                     break;
+                  default:
+                     break;
+                }
+                if($degrees != 0) {
+                  //$newfile = 'file'; // means delete origfile and use origfile name for newfile
+                  if($this->_rotateImage($origfile, $degrees, $quality)) {
+                     $rtnmsg = 'successfully rotated '. $origfile;
+                     $rtn = true;
+                  } else {
+                     $rtnmsg = 'error rotating '.$origfile;
+                     $this->_logerror('error',$rtnmsg);
+                  }
+                 
+                }
+             }
+             //die('emode=['.$emode.'] '.$rtnmsg.' modfile('.$origfile.')');
+             if($rtn){
+                 //TODO: update fname and fpath with $modfile 20130812
+                 if($this->_string_beginswith($origfile,'.'))
+                    $origfile = substr($origfile,1);
+                 $rtn = $this->updrecord($imgid, $origfile, $emode);
+             }
+           }
+      } else {
+         $rtnmsg = 'Nothing to update';        
+      }
+      echo $rtnmsg;
+    }
     public function _get_tag_frm()
     {
         //$this->load->helper('form');
@@ -553,140 +675,6 @@
       echo '<p>'.$msg;
       echo '<p> -------------------------- <p>';       
     }
-    public function modimage()
-    {
-      $rtn = false;
-      $rtnmsg = 'nada';
-      $origfile = $this->input->post('ifile');
-      $newfile = $origfile;
-      $imgid = $this->input->post('imgid');
-      $emode = $this->input->post('emode'); 
-      $which = $this->input->post('which'); 
-      $topx  = $this->input->post('topx'); 
-      $topy  = $this->input->post('topy'); 
-      $botx  = $this->input->post('botx'); 
-      $boty  = $this->input->post('boty'); 
-      $wide  = (int) $this->input->post('wide'); 
-      $hite  = (int) $this->input->post('hite');
-      
-      //verify valid emode
-      $validmodes = 'SCFLRV';
-      if(stripos($validmodes,$emode) !== false)
-      {
-            if((!isset($wide) || $wide == 0) ||
-               (!isset($hite) || $hite == 0))
-           {
-              $fileinfo = getimagesize($origfile);
-              $wide = $fileinfo[0];
-              $hite = $fileinfo[1];
-           }
-     
-           //$this->_test_file_exists($origfile);
-           if(stripos($origfile,IMG_USER_PATH) === false &&
-              stripos($origfile,IMG_UPLOAD_PATH) === false)
-           {
-              $newfile = IMG_USER_PATH.$origfile;
-           } elseif(stripos($origfile,IMG_UPLOAD_PATH) !== false &&
-                     stripos($origfile,IMG_USER_PATH) === false)
-           {
-              $newfile = str_replace(IMG_UPLOAD_PATH, IMG_USER_PATH,$origfile);
-           }
-          
-           $renfile = $this->_get_new_filename($origfile);
-           
-           if(file_exists($origfile) && !(file_exists($renfile))) {
-               if(rename('./'.$origfile, './'.$renfile)){
-                  $rtnmsg .= ' <p> rename worked! ';
-                  if(file_exists('./'.$renfile)){
-                     $origfile = $renfile;
-                  }
-               } else
-                 $rtnmsg .= ' <p> rename failed! ';
-           } else {
-               $rtnmsg = 'file_exists('.$origfile.')= ';
-               $rtnmsg .= (file_exists($origfile)) ? 'does exist' : 'does not exist';
-               $rtnmsg .= '!(file_exists('.$renfile.')= ';
-               $rtnmsg .= (!file_exists($renfile)) ? 'true-does NOT exist' : 'false-does exist';
-           }
-           $rtn = file_exists($renfile);
-
-           if($rtn)
-           {
-             $rtn = false;  
-             $quality = 85;
-             if($emode == 'S') // resize -- do on upload -- rather than user choice
-             {
-                 $newsize = $this->_get_target_size($wide, $hite);
-                 $newwide = $newsize['width'];
-                 $newhite = $newsize['height'];
-                 
-                 if($this->_smart_resize_image($renfile,
-                                               $newwide,
-                                               $newhite,
-                                                   true,
-                                               $newfile,
-                                                  false,
-                                                  false,
-                                                $quality)) {
-                   $rtnmsg = 'successfully resized '.$newfile;
-                   $rtn = true;
-                } else {
-                   $rtnmsg = 'error resizing '.$newfile;
-                   $this->_logerror('error',$rtnmsg);
-                 }
-             } elseif($emode == 'C') { //crop
-                 if($this->_crop_image($renfile,
-                                       $newfile,
-                                          $topx,
-                                          $topy,
-                                          $botx,
-                                          $boty))
-                 {
-                     $rtnmsg = 'successfully cropped '. $newfile;
-                     $rtn = true;
-                 } else {
-                     $rtnmsg = 'error croping '.$newfile;
-                     $this->_logerror('error',$rtnmsg);
-                 }
-             } elseif($emode != 'X') {
-                $degree = 0;
-                switch($emode){
-                  case('R'): //90 right
-                     $degree = 90; 
-                     break;
-                  case('L'): //90 left
-                     $degree = 270;
-                     break;
-                  case('V'): //flip vertically
-                     $degree = 180;
-                     break;
-                  default:
-                     break;
-                }
-                if($degree != 0) {
-                  if($this->_rotateImage($origfile, $newfile, $degrees, $quality, $save)) {
-                     $rtnmsg = 'successfully rotated '. $newfile;
-                     $rtn = true;
-                  } else {
-                     $rtnmsg = 'error rotating '.$newfile;
-                     $this->_logerror('error',$rtnmsg);
-                  }
-                 
-                }
-             }
-             if($rtn){
-                 //TODO: update fname and fpath with $newfile 20130812
-                 if($this->_string_beginswith($newfile,'.'))
-                    $newfile = substr($newfile,1);
-                 $rtn = $this->updrecord($imgid, $newfile);
-             }
-           } else {
-              $rtnmsg = 'invalid mode passed to method';
-              $this->_logerror('error',$rtnmsg);
-           }
-      }
-      echo $rtnmsg;
-    }
     /**
      *
      */
@@ -744,32 +732,28 @@
         $exist = file_exists($rtn_name);
         if($exist)
         {
-            $exist = false;
-            $i = 0;
-            while(!$exist){
-                 if(file_exists($rtn_name)){
-                      continue;
-                 }else{
-                      $exist = true;
-                      $rtn_name = $dr.$rName.$i.$ext;
-                 }
-                 $i++;
-            }
+            for ($i = 1; $i < 999; $i++)
+            {
+                $rtn_name = $dr.$rName.$i.$ext;
+                if (!is_file($rtn_name))
+                {
+                    break;
+                }
+            }            
         }
         return $rtn_name;
     }
     /**
      * image resize function
-     * @param  $file - file name to resize
+     * @param  $file - file name to crop
      * @param  $width - new image width
      * @param  $height - new image height
-     * @param  $output - name of the new file (include path if needed)
+     * @param  $newfile - name of the new file (include path if needed)
      * @param  $quality - enter 1-100 (100 is best quality) default is 100
      * @return boolean|resource
      * ref: https://github.com/Nimrod007/PHP_image_resize/blob/master/smart_resize_image.function.php
      */
     function _crop_image($origfile,
-                         $newfile,
                          $x1  = 0, 
                          $y1  = 0,
                          $x2  = 0,
@@ -793,32 +777,24 @@
            $width  = $manipulator->getWidth();
            $height = $manipulator->getHeight();
            $newImage = $manipulator->crop($x1, $y1, $x2, $y2);
-           $manipulator->save($newfile);
-           $rtn = file_exists($newfile);
+           $manipulator->save($origfile);
+           $rtn = file_exists($origfile);
         }
         return $rtn;
     }
     /*
     * ref: http://www.nodstrum.com/2006/12/09/image-manipulation-using-php/
     * rotateImage function
-    * @param $file - image file path and file name 
+    * @param $file - image file path and file name
     * @param $degrees - degrees to rotate (anticlockwise i think) by
     * @param $quality - image quality
-    * @param $save - save or not (if you wanted to output to a temp to preview, if not used, leave as 1
+    * @param $save - save or not (if you wanted to newfile to a temp to preview, if not used, leave as 1
     */
     function _rotateImage($origfile, $degrees, $quality, $save = true)
     {
-        $finfo = $this->_get_fileinfo($origfile);
-
         // Open the original image.
-        list($width, $height, $type, $attr) = getimagesize("$origfile");
+        list($width, $height, $type, $attr) = getimagesize($origfile);
 
-        $fpath = $finfo['dirname'];
-        if(!$this->_string_endswith($fpath,'/'))
-           $fpath .= '/';
-        $fname = $finfo['basename'];
-        $ftype = $finfo['extension'];
-        
         # Loading image to memory according to type
         switch ( $type ) {
           case IMAGETYPE_GIF:
@@ -832,25 +808,26 @@
             break;
           default: return false;
         }
-        
      
         // Resample the image.
         $tempImg = imagecreatetruecolor($width, $height) or $this->_logerror('error','creating temporary image for processing');
-        imagecopyresized($tempImg, $origfile, 0, 0, 0, 0, $width, $height, $width, $height) or $this->_logerror('error','cannot resize '.$origfile);
+        imagecopyresized($tempImg, $image, 0, 0, 0, 0, $width, $height, $width, $height) or $this->_logerror('error','cannot resize '.$origfile);
+
+        $tempFile = $this->_get_new_filename($origfile);
      
         // Rotate the image.
-        $rotate = imagerotate($origfile, $degrees, 0);
-     
+        $rotate = imagerotate($image, $degrees, 0);
+        
         // Save.
         if($save)  // always true unless you are returning a view before saving interactively
         {
+
             // Create the new file name.
-            imagejpeg($rotate, $newfile, $quality) or $this->_logerror('error','saving image');
+            imagejpeg($rotate, $tempFile, $quality) or $this->_logerror('error','saving image');
         }
      
         // Clean up.
-        imagedestroy($origfile);
-        rename($newfile, $origfile);
+        rename($tempFile, $origfile) or $this->_logerror('error','_rotateImage-error renaming '.$tempFile.' to '.$origfile);
         imagedestroy($tempImg);
         return true;
     }
@@ -861,48 +838,49 @@
      * @param  $width - new image width
      * @param  $height - new image height
      * @param  $proportional - keep image proportional, default is no
-     * @param  $output - name of the new file (include path if needed)
+     * @param  $newfile - name of the new file (include path if needed) -- or 'file' to replace origfile name
      * @param  $delete_original - if true the original image will be deleted
      * @param  $use_linux_commands - if set to true will use "rm" to delete the image, if false will use PHP unlink
      * @param  $quality - enter 1-100 (100 is best quality) default is 100
      * @return boolean|resource
      * ref: https://github.com/Nimrod007/PHP_image_resize/blob/master/smart_resize_image.function.php
      */
-    function _smart_resize_image($file,
+    function _smart_resize_image($origfile,
                                 $width              = 0, 
                                 $height             = 0, 
                                 $proportional       = false, 
-                                $output             = 'file', 
+                                $newfile            = 'file', 
                                 $delete_original    = true, 
                                 $use_linux_commands = false,
                                 $quality = 100) {
       
         if($height <= 0 && $width <= 0 ) return false;
-           # Setting defaults and meta
-           $info                         = getimagesize($file);
-           $image                        = '';
-           $final_width                  = 0;
-           $final_height                 = 0;
-           list($width_old, $height_old) = $info;
-                
-           # Calculating proportionality
-           if ($proportional) {
-              if      ($width  == 0)  $factor = $height/$height_old;
-              elseif  ($height == 0)  $factor = $width/$width_old;
-              else                    $factor = min( $width / $width_old, $height / $height_old );
-              $final_width  = round( $width_old * $factor );
-              $final_height = round( $height_old * $factor );
-            }
-        else {
+        
+        # Setting defaults and meta
+        $info          = getimagesize($origfile);
+        $image         = '';
+        $final_width   = 0;
+        $final_height  = 0;
+        list($width_old, $height_old) = $info;
+             
+        # Calculating proportionality
+        if ($proportional)
+        {
+           if      ($width  == 0)  $factor = $height/$height_old;
+           elseif  ($height == 0)  $factor = $width/$width_old;
+           else                    $factor = min( $width / $width_old, $height / $height_old );
+           $final_width  = round( $width_old * $factor );
+           $final_height = round( $height_old * $factor );
+        } else {
            $final_width = ( $width <= 0 ) ? $width_old : $width;
            $final_height = ( $height <= 0 ) ? $height_old : $height;
         }
     
         # Loading image to memory according to type
         switch ( $info[2] ) {
-          case IMAGETYPE_GIF:   $image = imagecreatefromgif($file);   break;
-          case IMAGETYPE_JPEG:  $image = imagecreatefromjpeg($file);  break;
-          case IMAGETYPE_PNG:   $image = imagecreatefrompng($file);   break;
+          case IMAGETYPE_GIF:   $image = imagecreatefromgif($origfile);   break;
+          case IMAGETYPE_JPEG:  $image = imagecreatefromjpeg($origfile);  break;
+          case IMAGETYPE_PNG:   $image = imagecreatefrompng($origfile);   break;
           default: return false;
         }
         
@@ -926,18 +904,18 @@
         imagecopyresampled($image_resized, $image, 0, 0, 0, 0, $final_width, $final_height, $width_old, $height_old);
         # Taking care of original, if needed
         if ( $delete_original ) {
-          if ( $use_linux_commands ) exec('rm '.$file);
-          else @unlink($file);
+          if ( $use_linux_commands ) exec('rm '.$origfile);
+          else @unlink($origfile);
         }
         # Preparing a method of providing result
-        switch ( strtolower($output) ) {
+        switch ( strtolower($newfile) ) {
           case 'browser':
             $mime = image_type_to_mime_type($info[2]);
             header("Content-type: $mime");
-            $output = NULL;
+            $newfile = NULL;
             break;
           case 'file':
-            $output = $file;
+            $newfile = $origfile;
              break;
           case 'return':
             return $image_resized;
@@ -946,11 +924,11 @@
           break;
        }
         
-        # Writing image according to type to the output destination and image quality
+        # Writing image according to type to the newfile destination and image quality
        switch ( $info[2] ) {
-          case IMAGETYPE_GIF:   imagegif($image_resized, $output, $quality);    break;
-          case IMAGETYPE_JPEG:  imagejpeg($image_resized, $output, $quality);   break;
-          case IMAGETYPE_PNG:   imagepng($image_resized, $output, $quality);    break;
+          case IMAGETYPE_GIF:   imagegif($image_resized, $newfile, $quality);    break;
+          case IMAGETYPE_JPEG:  imagejpeg($image_resized, $newfile, $quality);   break;
+          case IMAGETYPE_PNG:   imagepng($image_resized, $newfile, $quality);    break;
           default: return false;
        }
         return true;
@@ -996,6 +974,6 @@
     {
         $thisclass = basename(__FILE__, '.php');
         $logmsg = $thisclass.'-'.$errmsg;
-        log_error($thisclass,$logmsg);
+        log_message($which,$logmsg);
     }
 } //end class

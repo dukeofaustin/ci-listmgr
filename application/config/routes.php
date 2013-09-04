@@ -42,6 +42,9 @@ $route['default_controller'] = 'pages/view';
 $route['(:any)'] = 'pages/view/$1';
 */
 
+$route['smileys'] = 'smileys';
+$route['smileys/(:any)'] = 'smileys/pages/$1';
+
 $route['upload/do_upload'] = 'upload/do_upload';
 $route['upload/imagefile'] = 'upload/imagefile';
 $route['upload/view'] = 'upload/view';
@@ -49,6 +52,7 @@ $route['upload/(:any)'] = 'upload/view/$1';
 $route['upload'] = 'upload';
 
 $route['404_override'] = 'errors/site_404';
+
 $route['lists/updlist'] = 'lists/updlist';
 $route['lists/updpicks'] = 'lists/updpicks';
 $route['lists/gettypes'] = 'lists/gettypes';
@@ -88,7 +92,7 @@ $route['login/signout'] = 'login/signout';
 $route['login/signon'] = 'login/signon';
 $route['login/upduser'] = 'login/upduser';
 $route['login/editform'] = 'login/editform';
-$route['login/(:any)'] = 'login/view/$1';
+//$route['login/(:any)'] = 'login/view/$1';
 $route['login'] = 'login';
 
 $route['(:any)'] = 'pages/view/$1';

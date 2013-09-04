@@ -167,7 +167,8 @@ fieldset { padding:0;
 #subtitle h1 {
    text-align: center;
    vertical-align: middle;
-   color: #AAA; 
+   color: #989898;
+   background-color: #fffff0; 
 }
 #personal h1 {
    margin-left: 50%;

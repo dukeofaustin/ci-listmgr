@@ -9,9 +9,9 @@
 
   public function __construct()
   {
-   $this->load->database();
+    $this->load->database();
    //$this->load->helper('date');
-   $this->load->library('siteprocs');
+    $this->load->library('siteprocs');
   }
 
   public function get_itags($usrid = 0) {
@@ -148,8 +148,8 @@
               $data[] = $row;
           }
           return $data;
-        }
-        return false;
+       }
+       return false;
   } //end get_imagedata
   /*
    * Function to retrieve images for showcase
@@ -206,7 +206,7 @@
   /*
    * Function to update application user record
   */
-   public function update_image($mode, $imgrec)
+   public function update_image($mode, $imgrec, $udatemsg = '')
    {
      $rtn = false;
      $msg = 'update_image_pre'; 
@@ -237,7 +237,10 @@
      if(isset($usrid) && $usrid <= 0)
         $usrid = $sproc->getLoginId();
         
-     $udate = $mode.'-'.$sproc->getDateTime().' id-'.$usrid;
+     //allow custom udate message if desired
+     $udatemsg = $udatemsg = '' ? ' id-'.$usrid : $udatemsg;
+     
+     $udate = $mode.'-'.$sproc->getDateTime().' '.$udatemsg;
      
      if(isset($fname) && isset($mode)){
         $data = array('imgid' => $imgid,

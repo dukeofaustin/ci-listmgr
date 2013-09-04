@@ -152,29 +152,30 @@ $(document).ready(function () {
   {
     return $('#descr').val();
   }
-  function rtnSelectedIdStr(which)
-  {
-    var rtn = '';
-    $('#' + which + '-dropdown option:selected').each(function () {
-  	       rtn = $(this).val();
-     });
-     return rtn;
-  }
   function getImgEditMode()
   {
     var rtn = $('input:radio[name=radiobtn2]:checked').val()
     if(rtn == 'F') {
-       rtn = rtnSelectedIdStr('img');
+       pikobj = rtnSelectedIdStr('img');
+       rtn = pikobj['sid'];
+       if(!isString(rtn)){
+          rtn = 'X';
+       }
+    } else if(rtn !== 'C') {
+        rtn = 'X';
     }
     return rtn;
   }  
   function modifyImage()
   {
     var rtn = false;
+    var mode = getImgEditMode();
+    if(mode.length == 0)
+      alert('mode is not set!');
     var params = {
             ifile : getImageName(),  
             imgid : getImageId(),
-            emode : getImgEditMode(),
+            emode : mode,
             which : 'item',
             topx  : $('#x').val(),
             topy  : $('#y').val(),
@@ -202,7 +203,9 @@ $(document).ready(function () {
            complete: function (xhr, status) {
               if (status === 'error' || !xhr.responseText) {
                 console.log('modimage-complete status: Error');
-                result = status+' ['+xhr.resposeText+']';
+                result = status;
+              } else {
+                result = 'modimage-ajax-complete';
               }
            },
            error: function(response) {

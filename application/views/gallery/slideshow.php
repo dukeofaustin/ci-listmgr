@@ -1,6 +1,7 @@
 <script src="<?php echo base_url();?>assets/js/slideshow.js" type="text/javascript"></script>
-    <div id="showcase" class="showcase">
-       <?php foreach ($image_list as $image):?>
+   <div id="showcase" class="showcase">
+       <?php if($image_list) { 
+           foreach ($image_list as $image):?>
             <!-- Each child div in #showcase with the class .showcase-slide represents a slide. -->
             <div class="showcase-slide">
                 <!-- Put the slide content in a div with the class .showcase-content. -->
@@ -20,6 +21,6 @@
                     <h2><?php echo $image->pdescr;?></h2>
                 </div>
             </div>
-       <?php endforeach; ?>
-  </div>
-</div>
+   </div>
+          <?php endforeach;
+       } ?>
