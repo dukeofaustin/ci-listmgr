@@ -238,9 +238,9 @@
         $usrid = $sproc->getLoginId();
         
      //allow custom udate message if desired
-     $udatemsg = $udatemsg = '' ? ' id-'.$usrid : $udatemsg;
+     $udatemsg = strlen($udatemsg) == 0 ? ' id-'.$usrid : $udatemsg;
      
-     $udate = $mode.'-'.$sproc->getDateTime().' '.$udatemsg;
+     $udate = $mode.'-'.$sproc->getDateTime().'-'.$udatemsg;
      
      if(isset($fname) && isset($mode)){
         $data = array('imgid' => $imgid,

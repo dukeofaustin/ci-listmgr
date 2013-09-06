@@ -5,8 +5,7 @@
 
   <div id="leftbtncol" class="column">
      <div class="innertube">
-        <button id="frmgupd">Group</button>
-        <button id="frmiupd">Item</button>
+        <button id="frmgupd">Groups</button>
         <button id="frmifnd">Search</button>
         <button id="refresh">Refresh</button>
      </div>
@@ -32,12 +31,10 @@
    <div id="rightgrdcol" class="column">
      <div class="innertube">
         <div id="formarea">
-           <p>form-column</p>
         </div>
      </div>
      <div class="innertube">
         <div id="lastarea">
-           <p>last-area</p>
         </div>
      </div>
    </div>

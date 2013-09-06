@@ -45,8 +45,9 @@ define("NORML_ROLE", 'norm');
 
 define("GROUP_STR",'group');
 define("ITEM_STR",'item');
-define("IMG_USER_PATH",'upload/user-pix/');
 define("IMG_UPLOAD_PATH",'upload/');
+define("IMG_SUBDIR_PATH", 'user-pix/');
+define("IMG_USER_PATH", IMG_UPLOAD_PATH.IMG_SUBDIR_PATH);
 
 define("TEST_USERID",1);
 

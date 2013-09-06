@@ -28,7 +28,7 @@
         if($query)
 	       $this->load->view('gallery/slideshow', $data);
         else
-	       $this->load->view('pages/about', $data);
+	       $this->load->view('gallery/imagenone', $data);
 	    $this->load->view('templates/footer');
     }
 
@@ -172,11 +172,11 @@
       // default all fields with stored values
       $imgrec = $this->gallery_model->get_imagedata($imgid);
       
-      $udatemsg = isset($udatemsg) ? $udatemsg : '';
-      
       if(isset($emode) && isset($imgid))
       {
          
+        $udatemsg = isset($udatemsg) ? $udatemsg : $emode;
+  
         $tagid = $this->input->post('tagid') ? $this->input->post('tagid') : 0;
         $descr = $this->input->post('descr') ? $this->input->post('descr') : '';
         $allow = $this->input->post('allow'); //? $this->input->post('allow') : 0;
@@ -196,6 +196,12 @@
       }
       echo $message;
     }
+    /*
+     * Update modified image (resize/crop/flip) and move to IMG_USER_PATH if not there
+     * @param  $imgid - tbl_image.imgid (file unique record number)
+     * @param  $file - path and file name that has been modified 
+     * @param  $updatemsg - emode from modimage to append to tbl_images.udate
+     */
     function updrecord($imgid = 0, $file, $udatemsg)
     {
       $rtn = false;
@@ -205,18 +211,20 @@
       $imgrec = $this->gallery_model->get_imagedata($imgid);
       $imgrec['ispic'] = 8;   
       $emode = UPDATE_REC; 
-      
       if($imgrec && $imgid > 0 && file_exists($file))
       {
          $fsize = filesize($file);
          if($fsize > 1000)
            $fsize = (int)($fsize/1000);
          
+         $file = $this->_move_image($file);
+         
          $finfo = $this->_get_fileinfo($file);
          $fpath = $finfo['dirname'];
          if(!$this->_string_endswith($fpath,'/'))
            $fpath .= '/';
          $fname = $finfo['basename'];
+
          
          $finfo = getimagesize($file);
          list($fwide, $fhite, $ftype, $fboth) = $finfo;
@@ -256,7 +264,7 @@
           $tagid = $this->input->post('tagid');
           $descr = $this->input->post('descr');
           
-          $rtn = 'mode '+$mode+' tagid '+$tagid+' imgid '+$imgid+' descr'+$descr;
+          $rtn = 'mode '+$mode+' tagid '+$tagid+' descr'+$descr;
           if(!$this->gallery_model->update_itag($mode,$tagid,$descr,$usrid)){
             $rtn = 'Error updating user selected list';
           }
@@ -463,7 +471,7 @@
     public function modimage()
     {
       $rtn = false;
-      $rtnmsg = 'nada';
+      $rtnmsg = 'nothing happened';
       $origfile = $this->input->post('ifile');
       $imgid = $this->input->post('imgid');
       $emode = $this->input->post('emode');
@@ -490,7 +498,6 @@
            $newfile = $this->_get_new_filename($origfile);
 
            $rtn = is_file($origfile) && !is_file($newfile);
-              
            if($rtn)
            {
              $rtn = false;  
@@ -556,12 +563,14 @@
                  
                 }
              }
-             //die('emode=['.$emode.'] '.$rtnmsg.' modfile('.$origfile.')');
              if($rtn){
                  //TODO: update fname and fpath with $modfile 20130812
-                 if($this->_string_beginswith($origfile,'.'))
-                    $origfile = substr($origfile,1);
+                 //if($this->_string_beginswith($origfile,'.'))
+                 //   $origfile = substr($origfile,1);
+                 //Update file information and move if not in IMG_USER_PATH
                  $rtn = $this->updrecord($imgid, $origfile, $emode);
+             } else {
+                $rtnmsg = 'unsuccessful modification?';
              }
            }
       } else {
@@ -940,7 +949,7 @@
     {
        $futil = new sitefileutils();
        $flist = array('cleanup utility');
-       
+       $data['utility'] = $flist;
        for($k = 0; $k <= 1; $k++) {
        
           $dirpath = ($k == 0) ? IMG_USER_PATH : IMG_UPLOAD_PATH;
@@ -963,6 +972,36 @@
         $this->load->view('templates/header');
         $this->load->view('pages/utility',$data);
 	    $this->load->view('templates/footer');
+    }
+    /*
+     * Move image from upload folder to final folder
+     * @param $fileandpath - $full file name
+     * @return string- desired full name if successful
+     */
+    function _move_image($fileandpath)
+    {
+        $rtn_name = $fileandpath;
+        $finfo = $this->_get_fileinfo($fileandpath);
+        $fpath = $finfo['dirname'];
+        if(!$this->_string_endswith($fpath,'/'))
+           $fpath .= '/';
+        
+        $fname = $finfo['basename'];
+
+        $newfile = IMG_USER_PATH.$fname;
+         
+        // Move file from IMG_UPLOAD_PATH to IMG_USER_PATH
+        if(stripos($fpath,IMG_SUBDIR_PATH) === false &&
+           stripos($fpath,IMG_UPLOAD_PATH) !== false)
+        {
+          $rtn = rename($fileandpath,$newfile);
+          if(!$rtn){
+            $this->_logerror('error','error renaming '.$fileandpath.' to '.$newfile);    
+          } else {
+            $rtn_name = $newfile;
+          }
+        }
+        return $rtn_name;
     }
     /*
      * logerror function

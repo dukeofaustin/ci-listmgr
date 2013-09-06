@@ -2,8 +2,8 @@
   function getEditMode() {
      return $('#editwhat').val().toLowerCase();
   }
-  /* showFindForm is used to look up tbl_lstitem descriptions */
-  function showFindForm(which)
+  /* showImgFindForm is used to look up tbl_images records */
+  function showImgFindForm(which)
   {
      $.ajax({
         type: 'POST',
@@ -18,11 +18,11 @@
         },
         complete: function (xhr, status) {
             if (status === 'error' || !xhr.responseText) {
-               console.log('showFindForm-Complete status: Error');
+               console.log('showImgFindForm-Complete status: Error');
             }
         },
         error: function(response) {
-            console.log('showFindForm-error-status: '+response.status + ' statusText: ' + response.statusText);
+            console.log('showImgFindForm-error-status: '+response.status + ' statusText: ' + response.statusText);
         }
       });
       return false;
@@ -34,8 +34,8 @@
      });
      return false;
   }
-  /* showEditForm is used to Ins/Upd tbl_lstgrp records and Ins-Only tbl_lstitem records */
-  function showEditForm(which)
+  /* showImgEditForm is used to Ins/Upd tbl_lstgrp records and Ins-Only tbl_lstitem records */
+  function showImgEditForm(which)
   {
     if(which.toLowerCase().indexOf('group') != -1) {
         getGroupForm();
@@ -106,7 +106,7 @@
            cache:false,
            async: false,
            beforeSend: function(){
-               show_Busy();
+               show_Busy('formarea');
            },
            success:
              function(data){
@@ -118,7 +118,7 @@
               if (status === 'error' || !xhr.responseText) {
                  console.log('updateItem-complete status: Error');
               }
-              hide_Busy();
+              hide_Busy('formarea');
            },
            error: function(response) {
               console.log('updateItem-ajax-error-status: '+response.status + ' statusText: ' + response.statusText);
@@ -176,7 +176,7 @@
         cache:false,
         async: false,
         beforeSend: function(){
-            show_Busy();
+            show_Busy('formarea');
         },
         success:
           function(data){
@@ -186,7 +186,7 @@
            if (status === 'error' || !xhr.responseText) {
               console.log('updateGroup-complete status: Error');
            }
-           hide_Busy();
+           hide_Busy('formarea');
         },
         error: function(response) {
     	   console.log('updateGroup-ajax-error-status: '+response.status + ' statusText: ' + response.statusText);
@@ -229,21 +229,6 @@
         }
      }
      return rtn;
-  }
-  function show_Busy(){
-     $('#gridview').block({
-         message: '<img src="../cdig/images/ajax-loader.gif"/>'
-     });
-  }
-  function hide_Busy(){
-     $('#formarea').empty();
-  }
-  function update_Page(html){
-      window.setTimeout( function(){
-       $("#formarea").empty();
-       $('#gridview').empty();
-       $('#gridview').html(html);
-      } , 200);
   }
   function validGroupPick()
   {

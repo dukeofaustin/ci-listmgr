@@ -10,7 +10,7 @@ $(document).ready(function () {
        type: "GET",
        dataType: "html",
        beforeSend: function(){
-          show_Busy();
+          show_Busy('gridview');
        },   
        success: function(html) {
           update_Page(html);
@@ -34,18 +34,7 @@ $(document).ready(function () {
             },
          })
          .click(function() {
-            //displayGroup();
-            showEditForm($(this).text());
-  })
-  $('#frmiupd')
-     .button({
-            icons: {
-                primary: 'ui-icon-circle-plus'
-            },
-         })
-         .click(function() {
-            //displayItem();
-            showEditForm($(this).text());
+            showImgEditForm($(this).text());
   })
   $('#frmifnd')
      .button({
@@ -54,7 +43,7 @@ $(document).ready(function () {
             },
          })
          .click(function() {
-            showFindForm($(this).text());
+            showImgFindForm($(this).text());
   })
   $('#refresh')
 	 .button({
@@ -213,7 +202,7 @@ $(document).ready(function () {
               result = 'response ['+respons.status+']-['+response.statusText+']';
            }
         });
-        $('#lastarea').empty(); 
+        $('#formarea').empty(); 
         $('#lastarea').append(result); 
         return rtn;
   }

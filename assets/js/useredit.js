@@ -29,8 +29,9 @@ $(function() {
         buttons: {
             "Login": function() {
                 if(loginUser()){
-                   $( this ).wijdialog( "close" );
-                   window.location = 'http://mangumreunion.com/listmgr/cdig/';
+					//alert('window.location call');
+                    window.location = 'http://mangumreunion.com/listmgr/cdig/';
+					$( this ).wijdialog( "close" );
                 } else {
                    updateTips('Invalid login');
                    clearTextBox('uname');
@@ -103,26 +104,26 @@ $(function() {
         async: false,
         success:
           function(data){
-            console.log( 'Ajax-no errors' );
-            console.log('data.message='+data);
+            //console.log( 'Ajax-no errors' );
+            //console.log('data.message='+data);
             alert(data);
             $('#user-area').append(data); 
         },
         beforeSend: function(){
-            console.log( 'Ajax-beforeSend' );
+            //console.log( 'Ajax-beforeSend' );
         },
         complete: function (xhr, status) {
             if (status === 'error' || !xhr.responseText) {
-               console.log('Complete-status=error');
+               //console.log('Complete-status=error');
             } else {
               var data = xhr.responseText;
               $('#user-area').html(data).append;
-              console.log( 'Ajax-complete-xhr.resonseText='.data);
+              //console.log( 'Ajax-complete-xhr.resonseText='.data);
             }
                 $( "#dlg-edituser" ).wijdialog( "close" );		
             },
         error: function(response) {
-            console.log('Ajax-error: '+response.status + ' ' + response.statusText);
+            //console.log('Ajax-error: '+response.status + ' ' + response.statusText);
         }
         });
     }
@@ -146,7 +147,7 @@ $(function() {
         dataType: 'json',
 		success:
 		  function(data){
-		    console.log( 'Ajax-no errors' );
+		    //console.log( 'Ajax-no errors' );
             var pname = data.uname;
             if (typeof pname !== 'undefined') {
                 if(pname.toLowerCase().indexOf(params['uname'].toLowerCase()) != -1){
@@ -155,15 +156,15 @@ $(function() {
             }
 		},
 		beforeSend: function(){
-		    console.log( 'Ajax-beforeSend' );
+		    //console.log( 'Ajax-beforeSend' );
 		},
 		complete: function (xhr, status) {
 		    if (status === 'error' || !xhr.responseText) {
-		       console.log('Complete-status=error');
+		       //console.log('Complete-status=error');
 		    }
         },
 		error: function(response) {
-		    console.log('Ajax-error: '+response.status + ' statusText: ' + response.statusText);
+		    //console.log('Ajax-error: '+response.status + ' statusText: ' + response.statusText);
 		}
       });
       return rtn;
@@ -220,12 +221,6 @@ $(function() {
        });
     }
     
-    function showBusy(){
-       $('#showarea').block({
-            message: '<img src="../cdig/images/ajax-loader.gif"/>'
-        });
-    }
-
     function updateTips( t ) {
         tips.text( t ).addClass( "ui-state-highlight" );
         setTimeout(function() {

@@ -17,7 +17,7 @@ class Upload extends CI_Controller {
 	{
 		parent::__construct();
 		$this->load->helper(array('form', 'url'));
-        $this->load->library('sitefileutils');        
+        //$this->load->library('sitefileutils');        
 	}
 
 	function index()
@@ -50,9 +50,9 @@ class Upload extends CI_Controller {
             $this->load->library('image_lib', $config);
             $uplarr = $this->upload->get_multi_upload_data();
             for($i=0; $i<count($uplarr); $i++){
-                //echo $uplarr[$i]['file_name'];
                 // map, store and insert into tbl_images
                 $recarr = $this->gallery_model->get_imagedata(0); // get full record structure
+                $recarr['descr'] = $uplarr[$i]['file_name'];
                 $recarr['fname'] = $uplarr[$i]['file_name'];
                 $recarr['ftype'] = $uplarr[$i]['file_type'];
                 $recarr['fpath'] = (substr($destdir,0,1) == './') ? substr($destdir,2) : $destdir;
@@ -62,7 +62,7 @@ class Upload extends CI_Controller {
                 $recarr['fhite'] = $uplarr[$i]['image_height'];
                 $recarr['fboth'] = $uplarr[$i]['image_size_str'];
                 //Insert in database
-                $message = $this->gallery_model->update_image(INSERT_REC, $recarr, ' initial upload');
+                $message = $this->gallery_model->update_image(INSERT_REC, $recarr, '-initial upload');
                 $fname = $recarr['fname'];
                 $image = $fname;
                 $pos = strpos($fname,'.');
@@ -114,6 +114,38 @@ class Upload extends CI_Controller {
             echo $this->image_lib->display_errors();
         }        
     }
+}
+
+/*
+    function getFolderContents($dirpath)
+    {
+      $futil = new sitefileutils();
+      $farry = $futil->dirToArray($dirpath);
+      print_r($farry);
+    }
+    function cleanUpUserFiles()
+    {
+       $class = "gallery.php";
+       include_once($class);
+       $gallery = new Gallery();
+       $futil = new sitefileutils();
+       for($k = 0; $k <= 1; $k++) {
+          $dirpath = ($k == 0) ? IMG_USER_PATH : IMG_UPLOAD_PATH;
+          $farry = $futil->dirToArray($dirpath);
+            
+          for($j=0; $j<count($farry); $j++){
+            $file = $dirpath.$farry[$j];
+            if(!$gallery->imagfind($file)){
+              if(unlink($file))
+                $msg = 'Deleted: '.$file;
+              else
+                $msg = 'Could not delete: '.$file;
+              echo '<p>'.$msg;
+             }
+          }
+            
+        }
+    }
     function codeToMessage($code) 
     { 
         switch ($code) { 
@@ -145,34 +177,4 @@ class Upload extends CI_Controller {
         } 
         return $message; 
     }
-    function getFolderContents($dirpath)
-    {
-      $futil = new sitefileutils();
-      $farry = $futil->dirToArray($dirpath);
-      print_r($farry);
-    }
-    function cleanUpUserFiles()
-    {
-       $class = "gallery.php";
-       include_once($class);
-       $gallery = new Gallery();
-       $futil = new sitefileutils();
-       for($k = 0; $k <= 1; $k++) {
-          $dirpath = ($k == 0) ? IMG_USER_PATH : IMG_UPLOAD_PATH;
-          $farry = $futil->dirToArray($dirpath);
-            
-          for($j=0; $j<count($farry); $j++){
-            $file = $dirpath.$farry[$j];
-            if(!$gallery->imagfind($file)){
-              if(unlink($file))
-                $msg = 'Deleted: '.$file;
-              else
-                $msg = 'Could not delete: '.$file;
-              echo '<p>'.$msg;
-             }
-          }
-            
-        }
-    }
-}
-
+*/

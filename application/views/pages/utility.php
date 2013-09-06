@@ -1,8 +1,13 @@
    <div id="leftbtncol" class="column">
      <div class="innertube">
-         <?php foreach ($result as $item):?>
-            <p><?php echo $item;?></p>
-         <?php endforeach; ?>
+       <?php if(isset($result)) {
+              foreach ($result as $item):?>
+               <p><?php echo $item;?></p>
+             <?php endforeach; ?>
+             <?php } else { ?>
+               <p>Nothing to clean up</p>
+               
+             <?php } ?>
      </div>
      <div class="innertube">
         <div id="formarea">

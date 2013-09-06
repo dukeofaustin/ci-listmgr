@@ -4,7 +4,7 @@ $(document).ready(function () {
     $('#searchstr').keypress(function(e) {
        code = e.keyCode ? e.keyCode : e.which;
        if(code.toString() == 13) {
-         searchItem();
+         searchImage();
        }
     });      
     $('#findbtn')
@@ -14,7 +14,7 @@ $(document).ready(function () {
               },
            })
            .click(function() {
-             searchItem();
+             searchImage();
     });
     $('#nonebtn')
        .button({
@@ -24,12 +24,12 @@ $(document).ready(function () {
            })
            .click(function() {
   	          $('#gridview').empty();
-              window.open('index.php?lists/itemgrid','_self');		
+              window.open('index.php?gallery/images','_self');		
             
      });
      $('tr:odd').css('background', '#b0ffd8');
 })
-  function searchItem()
+  function searchImage()
   {
       var descrip = cleanItemString($('#searchstr').val());
       var form_data = {
@@ -51,40 +51,14 @@ $(document).ready(function () {
         },
         complete: function (xhr, status) {
 	    if (status === 'error' || !xhr.responseText) {
-	       result = 'searchItem-Complete status: Error';
+	       result = 'searchImage-Complete status: Error';
 	    } else {
- 	       //result = 'searchItem-Complete responseText: '+xhr.responseText;
+ 	       //result = 'searchImage-Complete responseText: '+xhr.responseText;
         }
         },
         error: function(response) {
- 	       result = 'searchItem-error-status: '+response.status + ' statusText: ' + response.statusText;
+ 	       result = 'searchImage-error-status: '+response.status + ' statusText: ' + response.statusText;
         }
       });
       return false;
   }
-    /* showFindForm is used to look up tbl_lstitem descriptions */
-  function showFindForm(which)
-  {
-     $.ajax({
-        type: 'POST',
-        url: 'index.php?gallery/findform',
-        cache:false,
-        async: false,
-        success:
-          function(data){
-	        $("#formarea").empty();
-            $("#formarea").html(data);
-            console.log(data);
-        },
-        complete: function (xhr, status) {
-            if (status === 'error' || !xhr.responseText) {
-               console.log('showFindForm-Complete status: Error');
-            }
-        },
-        error: function(response) {
-            console.log('showFindForm-error-status: '+response.status + ' statusText: ' + response.statusText);
-        }
-      });
-      return false;
-  }
-
