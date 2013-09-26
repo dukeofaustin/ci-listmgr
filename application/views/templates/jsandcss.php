@@ -81,7 +81,7 @@
 
 <!-- BEG-PAGINATION -->
     <script src="<?php echo base_url();?>assets/blockui/jquery.blockUI.js" type="text/javascript"></script>
-<!--    <script src="<?php echo base_url();?>assets/blockui/pagination.js" type="text/javascript"></script> -->
+    <script src="<?php echo base_url();?>assets/blockui/pagination.js" type="text/javascript"></script>
 <!-- END-PAGINATION -->
 
 <!-- BEG-CTX-MNU 

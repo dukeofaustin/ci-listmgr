@@ -9,9 +9,9 @@
 
   public function __construct()
   {
-    $this->load->database();
+   $this->load->database();
    //$this->load->helper('date');
-    $this->load->library('siteprocs');
+   $this->load->library('siteprocs');
   }
 
   public function get_itags($usrid = 0) {
@@ -84,7 +84,7 @@
       }
       $query->free_result(); // Release memory
       if (!$rtn){
-        trigger_error('update_itag - tbl_itags error during '+$mode,500); 
+        show_error('update_itag - tbl_itags error during '+$mode,500); 
       }
     }  
     return $rtn;
@@ -124,55 +124,6 @@
         return false;
   }
   /*
-   * Function to retrieve images for showcase
-  */
-  public function get_imagelist($filter = '') {
- 
-       $sqlstr = 'SELECT tbl_itags.tagid AS tid,
-                         tbl_itags.descr tdescr,
-                         tbl_images.imgid AS pid,
-                         tbl_images.descr AS pdescr,
-                         tbl_images.fname as fname,
-                 CONCAT(tbl_images.fpath,tbl_images.fname) as picture
-                 FROM tbl_images
-                 INNER JOIN (tbl_itags) ON tbl_images.tagid = tbl_itags.tagid ';
-       
-       if(strlen($filter) > 0) 
-           $sqlstr .= ' WHERE '.$filter.' ';
-       
-       $sqlstr .= ' ORDER BY  tbl_itags.descr ,  tbl_images.descr;';
-       
-       $query = $this->db->query($sqlstr);
-       if ($query->num_rows() > 0) {
-          foreach ($query->result() as $row) {
-              $data[] = $row;
-          }
-          return $data;
-       }
-       return false;
-  } //end get_imagedata
-  /*
-   * Function to retrieve images for showcase
-  */
-  public function get_imagename($filename) {
-      $data = array();
-      $sqlstr = 'SELECT tbl_images.imgid AS pid,
-                  CONCAT(tbl_images.fpath,tbl_images.fname) as filename
-                  FROM tbl_images';
-       
-      if(strlen($filename) > 0) 
-           $sqlstr .= ' WHERE CONCAT(tbl_images.fpath,tbl_images.fname) LIKE "%'.$filename.'%";';
-
-      $query = $this->db->query($sqlstr);
-      if ($query->num_rows() > 0) {
-          foreach ($query->result() as $row) {
-              $data[] = $row;
-          }
-          return $data;
-      }
-      return $data;
-  } //end get_imagename
-  /*
    * Function to retrieve all stored image date
   */
   public function get_imagedata($imgid) {
@@ -206,10 +157,10 @@
   /*
    * Function to update application user record
   */
-   public function update_image($mode, $imgrec, $udatemsg = '')
+   public function update_image($mode, $imgrec)
    {
      $rtn = false;
-     $msg = 'update_image_pre'; 
+     $msg = 'update_image_pre';
      $err = 'update_image-Error';
      $usrid = 0;
      $imgid = $imgrec['imgid'];
@@ -237,10 +188,7 @@
      if(isset($usrid) && $usrid <= 0)
         $usrid = $sproc->getLoginId();
         
-     //allow custom udate message if desired
-     $udatemsg = strlen($udatemsg) == 0 ? ' id-'.$usrid : $udatemsg;
-     
-     $udate = $mode.'-'.$sproc->getDateTime().'-'.$udatemsg;
+     $udate = $mode.'-'.$sproc->getDateTime().' id-'.$usrid;
      
      if(isset($fname) && isset($mode)){
         $data = array('imgid' => $imgid,
@@ -298,10 +246,11 @@
                $msg = "Error in update";
          } else if($mode == DELETE_REC) {
             $fpath = trim($row->fpath);
-            // remove file and thumbnail from user image area:
+            // remove file from user image area:
             for($j=0; $j <= 1;$j++){
                $fname = trim($row->fname);
                $fname = $j == 0 ? $fname : $this->rtn_thumb_name($fname);
+               $fpath = './images/user-pix/';
                $filename = $fpath.$fname;
                if(file_exists($filename))
                {

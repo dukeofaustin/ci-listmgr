@@ -11,7 +11,7 @@
 	 * @category	Uploads
 	 * @author		Conveyor Group <steven@conveyorgroup.com>
 	 * @link		https://github.com/stvnthomas/CodeIgniter-2.1-Multi-Upload
-     *              download path https://github.com/stvnthomas/CodeIgniter-Multi-Upload
+     / download path https://github.com/stvnthomas/CodeIgniter-Multi-Upload
 	 */
 class MY_Upload extends CI_Upload {
 			
@@ -434,7 +434,7 @@ class MY_Upload extends CI_Upload {
                  * file was an image).  We use this information
                  * in the "data" function.
                  */
-                $this->set_image_properties($this->upload_path.$this->file_name);
+                    $this->set_image_properties($this->upload_path.$this->file_name);
                     
                 //Set current file data to multi_file_upload_data.
                 $this->set_multi_upload_data();

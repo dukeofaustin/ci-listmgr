@@ -9,7 +9,7 @@ $(document).ready(function () {
        type: "GET",
        dataType: "html",
        beforeSend: function(){
-          show_Busy('gridview');
+          show_Busy();
        },   
        success: function(html) {
           update_Page(html);
