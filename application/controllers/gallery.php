@@ -3,41 +3,34 @@
   
   class Gallery extends CI_Controller {
     
-    const MAX_PDESC = 40; // grid pic description view length 
-    const MAX_TDESC = 12; // grid tag descrtiption view length
-    const IMG_WIDE = 640; // target width
-    const IMG_HITE = 480; // target height
-    const IMG_ISPIC = 2;  // image has been adjusted
-    
+    const MAX_PDESC = 40;
+    const MAX_TDESC = 12;
+ 
     public function __construct() 
     {
         parent::__construct();
         $this->load->model('gallery_model' );
         $this->load->library('session');  // for flash data
-        $this->load->library('sitefileutils');  // for cleanup
-        $this->load->library('siteprocs'); // for common string functions
 	    $this->load->helper(array('url','html'));
     }
     
     public function index()
     {
-      	$data['title'] = 'Gallery';
-        $query = $this->gallery_model->get_imagelist('tbl_images.descr != "<none>"'); //no filter
-        $data['image_list'] = $query;
-        $this->load->view('templates/header', $data);
-        if($query)
-	       $this->load->view('gallery/slideshow', $data);
-        else
-	       $this->load->view('gallery/imagenone', $data);
+      	$data['title'] = 'Gallery-Index';
+	    $this->load->view('templates/header', $data);
+	    $data['ipath'] = base_url().'images/user-pix/';
+	    if (file_exists($data['ipath'].'AnArtistsJourney.jpg'))
+ 	       $fexist = "Yes";
+	    else
+	       $fexist = "Nah";
+	    $data['fexist'] = $fexist;
+	    $this->load->view('gallery/index', $data);
 	    $this->load->view('templates/footer');
     }
-
     public function images()
     {
          $this->load->library('pagination');
          $this->load->library('table');
-         $sproc = new siteprocs();
-         
          $data['listtype'] = 'Pictures';
          $ajaxcall = false;
          /* AJAX check  */
@@ -55,7 +48,6 @@
          $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
          // generate table data
          $query = $this->gallery_model->get_allimages($config["per_page"], $page);
-         $noresult = $sproc->isEmpty($query);
          $tmplate = array ('table_open'  => '<table id="gridtable" border="1" cellpadding="1" cellspacing="1" class="ui-widget-content">' );
          $this->table->set_template($tmplate);
          $this->table->set_empty('&nbsp;');
@@ -64,18 +56,14 @@
              '1' => array('data' => 'Description', 'style' => 'width: 75%;'),
              '2' => array('data' => 'Edit', 'style' => 'text-align: center; width: 5%;'));
          $this->table->set_heading($tbl_heading);
-         if($noresult) {
-            $txt = '?</td><td style="text-align: center;"><b>No results returned</b></td><td>?';
-            $this->table->add_row($txt);
-         } else {
-            foreach($query as $row) {
-               $say = $this->_trim_descr($row->type, self::MAX_TDESC);
-               $txt = $say.'</td><td>';
-               $say = $this->_trim_descr($row->item, self::MAX_PDESC);
-               $txt .= $say.'</td>';
-               $act = '<td><a class="editthis" href="#" onclick="javascript:getImageForm('.$row->tid.','.$row->pid.',\''.$row->item.'\')">  <img src="'.base_url().'images/edit.gif" width="12" height="12"/>         </a>';
-               $this->table->add_row($txt.$act);
-            }
+         
+         foreach($query as $row) {
+            $say = $this->_trim_descr($row->type, self::MAX_TDESC);
+            $txt = $say.'</td><td>';
+            $say = $this->_trim_descr($row->item, self::MAX_PDESC);
+            $txt .= $say.'</td>';
+            $act = '<td><a class="editthis" href="#" onclick="javascript:getImageForm('.$row->tid.','.$row->pid.',\''.$row->item.'\')">  <img src="'.base_url().'images/edit.gif" width="12" height="12"/>         </a>';
+            $this->table->add_row($txt.$act);
          }
          if($ajaxcall){
             $this->load->view('gallery/imagepage',$data);
@@ -84,18 +72,6 @@
             $this->load->view('gallery/imagegrid',$data);
             $this->load->view('templates/footer');
          }
-    }
-    public function imagfind($fileandpath)
-    {
-       $rtn = false;
-       $query = $this->gallery_model->get_imagename($fileandpath);
-       if($query){
-         foreach($query as $row) {
-           $rtn = stripos($fileandpath,trim($row->filename)) !== false;
-           break;
-         }
-       }
-       return $rtn;
     }
     public function itemfind()
     {
@@ -163,7 +139,7 @@
             $this->load->view('templates/footer');
          }
     }
-    function updimage($udatemsg = '')
+    function updimage()
     {
       $message = 'pre-updimage';
       $emode = $this->input->post('emode'); //? $this->input->post('emode') : '';
@@ -171,12 +147,10 @@
       $usrid = $this->_get_userid();
       // default all fields with stored values
       $imgrec = $this->gallery_model->get_imagedata($imgid);
-      
+
       if(isset($emode) && isset($imgid))
       {
          
-        $udatemsg = isset($udatemsg) ? $udatemsg : $emode;
-  
         $tagid = $this->input->post('tagid') ? $this->input->post('tagid') : 0;
         $descr = $this->input->post('descr') ? $this->input->post('descr') : '';
         $allow = $this->input->post('allow'); //? $this->input->post('allow') : 0;
@@ -187,71 +161,12 @@
         $imgrec['allow'] = ($imgrec['allow'] == $allow) ? $imgrec['allow'] : $allow;
         $imgrec['ispic'] = 0;
         $message = 'pre-update_image()';
-        $message = $this->gallery_model->update_image($emode, $imgrec, $udatemsg);
+        $message = $this->gallery_model->update_image($emode, $imgrec);
       }
       if(TEST_MODE) {
         $message .= ' usrid('.$usrid.') imgid('.$imgid.') tagid('.$tagid.')';
         $message .= ' emode('.$emode.') allow('.$allow.') ';
         $message .= ' descr('.$descr.') ';
-      }
-      echo $message;
-    }
-    /*
-     * Update modified image (resize/crop/flip) and move to IMG_USER_PATH if not there
-     * @param  $imgid - tbl_image.imgid (file unique record number)
-     * @param  $file - path and file name that has been modified 
-     * @param  $updatemsg - emode from modimage to append to tbl_images.udate
-     */
-    function updrecord($imgid = 0, $file, $udatemsg)
-    {
-      $rtn = false;
-      $message = 'pre-updrecord';
-      $usrid = $this->_get_userid();
-      // default all fields with stored values
-      $imgrec = $this->gallery_model->get_imagedata($imgid);
-      $imgrec['ispic'] = 8;   
-      $emode = UPDATE_REC; 
-      if($imgrec && $imgid > 0 && file_exists($file))
-      {
-         $fsize = filesize($file);
-         if($fsize > 1000)
-           $fsize = (int)($fsize/1000);
-         
-         $file = $this->_move_image($file);
-         
-         $finfo = $this->_get_fileinfo($file);
-         $fpath = $finfo['dirname'];
-         if(!$this->_string_endswith($fpath,'/'))
-           $fpath .= '/';
-         $fname = $finfo['basename'];
-
-         
-         $finfo = getimagesize($file);
-         list($fwide, $fhite, $ftype, $fboth) = $finfo;
-        
-         $imgrec['usrid'] = $usrid;
-        
-         if(strlen($fname) > 0)
-           $imgrec['fname'] = ($imgrec['fname'] == $fname) ? $imgrec['fname'] : $fname;
-         if(strlen($fpath) > 0)
-           $imgrec['fpath'] = ($imgrec['fpath'] == $fpath) ? $imgrec['fpath'] : $fpath;
-         if(strlen($fboth) > 0)
-           $imgrec['fboth'] = ($imgrec['fboth'] == $fboth) ? $imgrec['fboth'] : $fboth;
-         if($fwide > 0)
-           $imgrec['fwide'] = ($imgrec['fwide'] == $fwide) ? $imgrec['fwide'] : $fwide;
-         if($fhite > 0)
-           $imgrec['fhite'] = ($imgrec['fhite'] == $fhite) ? $imgrec['fhite'] : $fhite;
-         if($fsize > 0)
-           $imgrec['fsize'] = ($imgrec['fsize'] == $fsize) ? $imgrec['fsize'] : $fsize;
-         if(strlen($fboth) > 0)
-           $imgrec['fboth'] = ($imgrec['fboth'] == $fboth) ? $imgrec['fboth'] : $fboth;
-         
-         $message = $this->gallery_model->update_image($emode, $imgrec, $udatemsg);
-         $rtn = stripos($message,'error') === false ? true : false;
-      }
-      if(TEST_MODE) {
-        $message .= ' usrid('.$usrid.') imgid('.$imgid.') ';
-        $message .= ' emode('.$emode.') file('.$file.') ';
       }
       echo $message;
     }
@@ -264,7 +179,7 @@
           $tagid = $this->input->post('tagid');
           $descr = $this->input->post('descr');
           
-          $rtn = 'mode '+$mode+' tagid '+$tagid+' descr'+$descr;
+          $rtn = 'mode '+$mode+' tagid '+$tagid+' imgid '+$imgid+' descr'+$descr;
           if(!$this->gallery_model->update_itag($mode,$tagid,$descr,$usrid)){
             $rtn = 'Error updating user selected list';
           }
@@ -325,22 +240,6 @@
         if($imgrec) {
             
             $allow = $imgrec['allow'];
-            $width = $imgrec['fwide'];
-            $height = $imgrec['fhite'];
-            $fpath = $imgrec['fpath'];
-            $fboth = $imgrec['fboth'];
-            $file  = $imgrec['fpath'].$imgrec['fname'];
-            
-            if((strlen($file) > 0) &&
-               ((!isset($width) || $width == 0) ||
-               (!isset($height) || $height == 0)))
-            {
-               $fileinfo = getimagesize($file);
-               $width = $fileinfo[0];
-               $height = $fileinfo[1];
-               $fboth = 'width="'.$width.'" height="'.$height.'"';
-            }
-            
             $incitem = (isset($which) &&  strtolower($which) == ITEM_STR) ? true : false; // include item or group only update
             
             if($incitem) {
@@ -354,70 +253,41 @@
             echo '<div id="itmform" class="ui-widget-content">';
             $frmtitle = $incitem ? 'Image Information' : 'Group Information';        
             echo form_fieldset('<b><style="text-align:center;">'.$frmtitle.'</style></b>');
-            echo '<table cols="3" id="frmtbl" border="0" cellpadding="1" cellspacing="1">';
-            echo '<tr><td colspan="3">';
-            echo '<class="validateTips">';
-            echo '</td></tr><td colspan="3">';     
+            echo '<table cols="2" id="frmtbl" border="0" cellpadding="1" cellspacing="1">';
+            echo '<tr><td colspan="2">';
+            echo '</td></tr><tr>';
+            echo '<p class="validateTips"></p>';
+            echo '</td></tr><td>';     
             $js = 'id="frm-dropdown" class="wijmo-wijdropdown"';
             $ddltitle = $incitem ? 'Assigned Group' : 'Selections';        
             echo form_label($ddltitle,'frm-dropdown');
             echo form_dropdown('frm-dropdown',$grps,$tagid,$js);
-            echo '</td>';
-            echo '<tr><td rowspan="2" colspan="2">';
-            echo '<p><div id="img-box" />';
-	        //$file1 = './'.IMG_USER_PATH.$imgrec['fname'];
-            $file = $imgrec['fpath'].$imgrec['fname'];
-	        echo '<img id="img-box" src="'.$file.'" width="180px" onClick="showImageDlg();" />';
-            echo '</td>';
-            echo '<td>';	    
+            echo '</td><td rowspan="2">';	    
             $ddltitle = $incitem ? 'Allow Access' : 'Selections';        
-            echo form_label($ddltitle,'radiogrp1');
+            echo form_label($ddltitle,'radiogrp');
             $inpattr = array(
-                    'name'     => 'radiobtn1',
-                    'id'       => 'radiobtn1',
+                    'name'     => 'radiobtn',
+                    'id'       => 'radiobtn',
                     'value'    => '0',
                     'class'    => 'wijmo-radio',
                     'style'    => 'float: left',
-                   'checked'   => $allow == 0 ? true : false );
+                   'checked'   => $allow == 0 ? TRUE : FALSE );
             //echo form_label('Public','radiobtn');
             echo form_radio($inpattr).' Public';            
             $inpattr = array(
-                    'name'     => 'radiobtn1',
-                    'id'       => 'radiobtn1',
+                    'name'     => 'radiobtn',
+                    'id'       => 'radiobtn',
                     'value'    => '1',
                     'class'    => 'wijmo-radio',
                     'style'    => 'float: left',
-                    'checked'  => $allow == 1 ? true : false );
+                    'checked'  => $allow == 1 ? TRUE : FALSE );
+            //echo form_label('Private','radiobtn');
             echo form_radio($inpattr).' Private';
-            $ddltitle = 'Adjust Image';
-            echo form_label($ddltitle,'radiogrp2');
-            $inpattr = array(
-                    'name'     => 'radiobtn2',
-                    'id'       => 'cropimg',
-                    'value'    => 'C',
-                    'class'    => 'wijmo-radio',
-                    'style'    => 'float: left',
-                   'checked'   => false );
-            echo form_radio($inpattr).' Crop';            
-            /*$inpattr = array(
-                    'name'     => 'radiobtn2',
-                    'id'       => 'rsizimg',
-                    'value'    => 'S',
-                    'class'    => 'wijmo-radio',
-                    'style'    => 'float: left',
-                   'checked'   => false );
-            echo form_radio($inpattr).' Resize';*/
-            $inpattr = array(
-                    'name'     => 'radiobtn2',
-                    'id'       => 'flipimg',
-                    'value'    => 'F',
-                    'class'    => 'wijmo-radio',
-                    'style'    => 'float: left',
-                   'checked'   => false );
-            echo form_radio($inpattr).' Flip';
-            echo '</td></tr>';
-            echo '<tr><td colspan="3"></td></tr><tr><td colspan="3">';
-            
+            echo '</td></tr><tr><td colspan="2">';
+            echo '<p><div id="img-box" />';
+	        $file = './images/user-pix/'.$imgrec['fname'];
+	        echo '<img id="img-box" src="'.$file.'" width="140px" onClick="showImageDlg();" />';
+            echo '</td></tr><tr><td colspan="2">';	    
             $ddltitle = $incitem ? 'Image Description' : 'Group Description';        
             echo form_label($ddltitle,'descr');
             $inpattr = array(
@@ -433,16 +303,13 @@
 	    
             //echo '<textarea id="descr" rows="3" cols="50" class="text ui-widget-content ui-corner-all" value="'.$descr.'"/>';
             echo '</td></tr>';
-            echo '<tr><td colspan="3">';
+            echo '<tr><td colspan="2">';
             echo '<input type="hidden" id="imgidnbr" value="'.$imgid.'"/>';
             echo '<input type="hidden" id="filename" value="'.$file.'"/>';
             echo '<input type="hidden" id="tagidnbr" value="'.$tagid.'"/>';
             echo '<input type="hidden" id="allow" value="'.$allow.'"/>';
             echo '<input type="hidden" id="editwhat" value="'.$which.'"/>';
-            echo '<input type="hidden" id="imgwide" value="'.$width.'"/>';
-            echo '<input type="hidden" id="imghite" value="'.$height.'"/>';
-            
-            echo '</td></tr><tr><td colspan="3">';
+            echo '</td></tr><tr><td colspan="2">';
             $btnattr = array( 'name' => 'delete',
                               'id' => 'frmdel',
                               'class' => 'frmdel',
@@ -463,120 +330,8 @@
             echo '</td></tr></table>';
             $formattr = "</div></div>";
             echo form_fieldset_close($formattr);
-            if(TEST_MODE)
-              echo '<p> file: '.$file;
         }
       return;
-    }
-    public function modimage()
-    {
-      $rtn = false;
-      $rtnmsg = 'nothing happened';
-      $origfile = $this->input->post('ifile');
-      $imgid = $this->input->post('imgid');
-      $emode = $this->input->post('emode');
-      $which = $this->input->post('which'); 
-      $topx  = $this->input->post('topx'); 
-      $topy  = $this->input->post('topy'); 
-      $botx  = $this->input->post('botx'); 
-      $boty  = $this->input->post('boty'); 
-      $wide  = (int) $this->input->post('wide'); 
-      $hite  = (int) $this->input->post('hite');
-      
-      $validmodes = 'SCFLRV';
-      $findstr = strstr($validmodes,$emode);
-      if(strlen($findstr) > 0)
-      {
-           if((!isset($wide) || $wide == 0) ||
-               (!isset($hite) || $hite == 0))
-           {
-              $fileinfo = getimagesize($origfile);
-              $wide = $fileinfo[0];
-              $hite = $fileinfo[1];
-           }
-           
-           $newfile = $this->_get_new_filename($origfile);
-
-           $rtn = is_file($origfile) && !is_file($newfile);
-           if($rtn)
-           {
-             $rtn = false;  
-             $quality = 90;
-             if($emode == 'S') // resize -- do on upload -- rather than user choice
-             {
-                 $newsize = $this->_get_target_size($wide, $hite);
-                 $newwide = $newsize['width'];
-                 $newhite = $newsize['height'];
-                 $delorig = true;
-                 $newfile = 'file'; // means delete origfile and use origfile name for newfile
-                 if($this->_smart_resize_image($origfile,
-                                               $newwide,
-                                               $newhite,
-                                               $delorig,
-                                               $newfile,
-                                                  false,
-                                                  false,
-                                                $quality)) {
-                   $rtnmsg = 'successfully resized '.$origfile;
-                   $rtn = true;
-                } else {
-                   $rtnmsg = 'error resizing '.$origfile;
-                   $this->_logerror('error',$rtnmsg);
-                 }
-             } elseif($emode == 'C') { //crop
-                 if($this->_crop_image($origfile,
-                                          $topx,
-                                          $topy,
-                                          $botx,
-                                          $boty))
-                 {
-                     $rtnmsg = 'successfully cropped '. $origfile;
-                     $rtn = true;
-                 } else {
-                     $rtnmsg = 'error croping '.$origfile;
-                     $this->_logerror('error',$rtnmsg);
-                 }
-             } elseif($emode != 'X') {
-                $degrees = 0;
-                switch($emode){
-                  case('L'): //90 left counterclockwise
-                     $degrees = 90;
-                     break;
-                  case('V'): //flip vertically counterclockwise
-                     $degrees = 180;
-                     break;
-                  case('R'): //90 right counterclockwise
-                     $degrees = 270; 
-                     break;
-                  default:
-                     break;
-                }
-                if($degrees != 0) {
-                  //$newfile = 'file'; // means delete origfile and use origfile name for newfile
-                  if($this->_rotateImage($origfile, $degrees, $quality)) {
-                     $rtnmsg = 'successfully rotated '. $origfile;
-                     $rtn = true;
-                  } else {
-                     $rtnmsg = 'error rotating '.$origfile;
-                     $this->_logerror('error',$rtnmsg);
-                  }
-                 
-                }
-             }
-             if($rtn){
-                 //TODO: update fname and fpath with $modfile 20130812
-                 //if($this->_string_beginswith($origfile,'.'))
-                 //   $origfile = substr($origfile,1);
-                 //Update file information and move if not in IMG_USER_PATH
-                 $rtn = $this->updrecord($imgid, $origfile, $emode);
-             } else {
-                $rtnmsg = 'unsuccessful modification?';
-             }
-           }
-      } else {
-         $rtnmsg = 'Nothing to update';        
-      }
-      echo $rtnmsg;
     }
     public function _get_tag_frm()
     {
@@ -674,345 +429,241 @@
         $rtn = strlen($what) > $howmuch ? substr($what,0, $howmuch).'...' : $what;
         return $rtn;
     }
-    function _test_file_exists($file)
-    { echo '<p> --------------------------';
-      $msg = 'file_exists('.$file.')=';
-      $msg .= file_exists($file) ? 'true' : 'false';
-      echo '<p>'.$msg;
-      $msg = 'file_exists(./'.$file.')=';
-      $msg .= file_exists('./'.$file) ? 'true' : 'false';
-      echo '<p>'.$msg;
-      echo '<p> -------------------------- <p>';       
-    }
-    /**
-     *
-     */
-    function _string_endswith($word, $end)
-    {
-       return (strpos($word, $end, strlen($word) - strlen($end)) !== false);
-    }
-    function _string_beginswith($word, $beg)
-    {
-       return (strpos($word, $beg, 0) !== false);
-    }
-    /**
-     * getFileInfo
-     * @param filepath
-     * @return fileinfo array (dirname, basename, extension, filename)
-     */
-    function _get_fileinfo($file)
-    {
-        $rtn_parts = pathinfo($file);
-        return $rtn_parts;
-    }
-    
-    function _get_target_size($width, $height)
-    {
-        $rtn_size = array( 'width'  => $width,
-                           'height' => $height );
-        
-        $wide = self::IMG_WIDE;
-        $hite = self::IMG_HITE;
-        $rtnwide = $width;
-        $rtnhite = $height;
-        if($width > 0 && $width > $wide){
-           $pcent = ($wide / $width);
-           $rtnwide = (int) ($pcent * $width);
-        }
-        if($height > 0 && $height > $hite){
-           $pcent = ($hite / $height);
-           $rtnhite = (int) ($pcent * $height);
-        }
-        $rtn_size['width'] = $rtnwide;
-        $rtn_size['height'] = $rtnhite;
-        return $rtn_size;
-    }
-    function _get_new_filename($pfile)
-    {
-        $rtn_name = $pfile;
-        $pos = strrpos($pfile,'.');
-        $ext = substr($pfile,$pos); 
-        $dir = strrpos($pfile,'/');
-        $dr  = substr($pfile,0,($dir+1)); 
-        $arr = explode('/',$pfile);
-        $fName = trim($arr[(count($arr) - 1)],$ext);
-        $rName = '0__'.$fName;
-        $rtn_name = str_replace($fName,$rName,$pfile);
-        $exist = file_exists($rtn_name);
-        if($exist)
-        {
-            for ($i = 1; $i < 999; $i++)
-            {
-                $rtn_name = $dr.$rName.$i.$ext;
-                if (!is_file($rtn_name))
-                {
-                    break;
-                }
-            }            
-        }
-        return $rtn_name;
-    }
-    /**
-     * image resize function
-     * @param  $file - file name to crop
-     * @param  $width - new image width
-     * @param  $height - new image height
-     * @param  $newfile - name of the new file (include path if needed)
-     * @param  $quality - enter 1-100 (100 is best quality) default is 100
-     * @return boolean|resource
-     * ref: https://github.com/Nimrod007/PHP_image_resize/blob/master/smart_resize_image.function.php
-     */
-    function _crop_image($origfile,
-                         $x1  = 0, 
-                         $y1  = 0,
-                         $x2  = 0,
-                         $y2  = 0
-                         )
-    {
-       // include ImageManipulator class
-       require_once('application/libraries/ImageManipulator.php');
-       $rtn = false;
-
-       $fileinfo = getimagesize($origfile); // returns array [0]=width,
-                                        // [1]=height,
-                                        // [2]=IMAGE_XXX (TYPE),
-                                        //[3]=string height="nn" width="nn"
-       if(($x1 > 0 && $y1 > 0 && $x2 > 0 && $y2 > 0) &&
-          (($fileinfo[2] == IMAGETYPE_JPEG) ||
-           ($fileinfo[2] == IMAGETYPE_PNG) ||
-           ($fileinfo[2] == IMAGETYPE_GIF)))
-       {
-           $manipulator = new ImageManipulator($origfile);
-           $width  = $manipulator->getWidth();
-           $height = $manipulator->getHeight();
-           $newImage = $manipulator->crop($x1, $y1, $x2, $y2);
-           $manipulator->save($origfile);
-           $rtn = file_exists($origfile);
-        }
-        return $rtn;
-    }
-    /*
-    * ref: http://www.nodstrum.com/2006/12/09/image-manipulation-using-php/
-    * rotateImage function
-    * @param $file - image file path and file name
-    * @param $degrees - degrees to rotate (anticlockwise i think) by
-    * @param $quality - image quality
-    * @param $save - save or not (if you wanted to newfile to a temp to preview, if not used, leave as 1
-    */
-    function _rotateImage($origfile, $degrees, $quality, $save = true)
-    {
-        // Open the original image.
-        list($width, $height, $type, $attr) = getimagesize($origfile);
-
-        # Loading image to memory according to type
-        switch ( $type ) {
-          case IMAGETYPE_GIF:
-            $image = imagecreatefromgif($origfile) or $this->_logerror('error','opening '.$origfile);
-            break;
-          case IMAGETYPE_JPEG:
-            $image = imagecreatefromjpeg($origfile) or $this->_logerror('error','opening '.$origfile);
-            break;
-          case IMAGETYPE_PNG:
-            $image = imagecreatefrompng($origfile) or $this->_logerror('error','opening '.$origfile);
-            break;
-          default: return false;
-        }
-     
-        // Resample the image.
-        $tempImg = imagecreatetruecolor($width, $height) or $this->_logerror('error','creating temporary image for processing');
-        imagecopyresized($tempImg, $image, 0, 0, 0, 0, $width, $height, $width, $height) or $this->_logerror('error','cannot resize '.$origfile);
-
-        $tempFile = $this->_get_new_filename($origfile);
-     
-        // Rotate the image.
-        $rotate = imagerotate($image, $degrees, 0);
-        
-        // Save.
-        if($save)  // always true unless you are returning a view before saving interactively
-        {
-
-            // Create the new file name.
-            imagejpeg($rotate, $tempFile, $quality) or $this->_logerror('error','saving image');
-        }
-     
-        // Clean up.
-        rename($tempFile, $origfile) or $this->_logerror('error','_rotateImage-error renaming '.$tempFile.' to '.$origfile);
-        imagedestroy($tempImg);
-        return true;
-    }
-         
-    /**
-     * easy image resize function
-     * @param  $file - file name to resize
-     * @param  $width - new image width
-     * @param  $height - new image height
-     * @param  $proportional - keep image proportional, default is no
-     * @param  $newfile - name of the new file (include path if needed) -- or 'file' to replace origfile name
-     * @param  $delete_original - if true the original image will be deleted
-     * @param  $use_linux_commands - if set to true will use "rm" to delete the image, if false will use PHP unlink
-     * @param  $quality - enter 1-100 (100 is best quality) default is 100
-     * @return boolean|resource
-     * ref: https://github.com/Nimrod007/PHP_image_resize/blob/master/smart_resize_image.function.php
-     */
-    function _smart_resize_image($origfile,
-                                $width              = 0, 
-                                $height             = 0, 
-                                $proportional       = false, 
-                                $newfile            = 'file', 
-                                $delete_original    = true, 
-                                $use_linux_commands = false,
-                                $quality = 100) {
-      
-        if($height <= 0 && $width <= 0 ) return false;
-        
-        # Setting defaults and meta
-        $info          = getimagesize($origfile);
-        $image         = '';
-        $final_width   = 0;
-        $final_height  = 0;
-        list($width_old, $height_old) = $info;
-             
-        # Calculating proportionality
-        if ($proportional)
-        {
-           if      ($width  == 0)  $factor = $height/$height_old;
-           elseif  ($height == 0)  $factor = $width/$width_old;
-           else                    $factor = min( $width / $width_old, $height / $height_old );
-           $final_width  = round( $width_old * $factor );
-           $final_height = round( $height_old * $factor );
-        } else {
-           $final_width = ( $width <= 0 ) ? $width_old : $width;
-           $final_height = ( $height <= 0 ) ? $height_old : $height;
-        }
-    
-        # Loading image to memory according to type
-        switch ( $info[2] ) {
-          case IMAGETYPE_GIF:   $image = imagecreatefromgif($origfile);   break;
-          case IMAGETYPE_JPEG:  $image = imagecreatefromjpeg($origfile);  break;
-          case IMAGETYPE_PNG:   $image = imagecreatefrompng($origfile);   break;
-          default: return false;
-        }
-        
-        # This is the resizing/resampling/transparency-preserving magic
-        $image_resized = imagecreatetruecolor( $final_width, $final_height );
-        if ( ($info[2] == IMAGETYPE_GIF) || ($info[2] == IMAGETYPE_PNG) ) {
-          $transparency = imagecolortransparent($image);
-          if ($transparency >= 0) {
-            $transparent_color  = imagecolorsforindex($image, $trnprt_indx);
-            $transparency       = imagecolorallocate($image_resized, $trnprt_color['red'], $trnprt_color['green'], $trnprt_color['blue']);
-            imagefill($image_resized, 0, 0, $transparency);
-            imagecolortransparent($image_resized, $transparency);
-          }
-          elseif ($info[2] == IMAGETYPE_PNG) {
-            imagealphablending($image_resized, false);
-            $color = imagecolorallocatealpha($image_resized, 0, 0, 0, 127);
-            imagefill($image_resized, 0, 0, $color);
-            imagesavealpha($image_resized, true);
-          }
-        }
-        imagecopyresampled($image_resized, $image, 0, 0, 0, 0, $final_width, $final_height, $width_old, $height_old);
-        # Taking care of original, if needed
-        if ( $delete_original ) {
-          if ( $use_linux_commands ) exec('rm '.$origfile);
-          else @unlink($origfile);
-        }
-        # Preparing a method of providing result
-        switch ( strtolower($newfile) ) {
-          case 'browser':
-            $mime = image_type_to_mime_type($info[2]);
-            header("Content-type: $mime");
-            $newfile = NULL;
-            break;
-          case 'file':
-            $newfile = $origfile;
-             break;
-          case 'return':
-            return $image_resized;
-            break;
-          default:
-          break;
-       }
-        
-        # Writing image according to type to the newfile destination and image quality
-       switch ( $info[2] ) {
-          case IMAGETYPE_GIF:   imagegif($image_resized, $newfile, $quality);    break;
-          case IMAGETYPE_JPEG:  imagejpeg($image_resized, $newfile, $quality);   break;
-          case IMAGETYPE_PNG:   imagepng($image_resized, $newfile, $quality);    break;
-          default: return false;
-       }
-        return true;
-    }
-    /*
-     * Utility to clean up all files in IMG_USER_PATH/IMG_UPLOAD_PATH not stored in table
-     */
-    function cleanup()
-    {
-       $futil = new sitefileutils();
-       $flist = array('cleanup utility');
-       $data['utility'] = $flist;
-       for($k = 0; $k <= 1; $k++) {
-       
-          $dirpath = ($k == 0) ? IMG_USER_PATH : IMG_UPLOAD_PATH;
-          $farry = $futil->dirToArray($dirpath);
-            
-          for($j=0; $j<count($farry); $j++){
-       
-            $file = $dirpath.$farry[$j];
-       
-            if(!$this->imagfind($file)){
-               if(unlink($file))
-                  $msg = 'Deleted: '.$file;
-               else
-                  $msg = 'Could not delete: '.$file;
-               $flist[] = $msg;
-            }
-            $data['result'] = $flist;
-          }
-        }
-        $this->load->view('templates/header');
-        $this->load->view('pages/utility',$data);
-	    $this->load->view('templates/footer');
-    }
-    /*
-     * Move image from upload folder to final folder
-     * @param $fileandpath - $full file name
-     * @return string- desired full name if successful
-     */
-    function _move_image($fileandpath)
-    {
-        $rtn_name = $fileandpath;
-        $finfo = $this->_get_fileinfo($fileandpath);
-        $fpath = $finfo['dirname'];
-        if(!$this->_string_endswith($fpath,'/'))
-           $fpath .= '/';
-        
-        $fname = $finfo['basename'];
-
-        $newfile = IMG_USER_PATH.$fname;
-         
-        // Move file from IMG_UPLOAD_PATH to IMG_USER_PATH
-        if(stripos($fpath,IMG_SUBDIR_PATH) === false &&
-           stripos($fpath,IMG_UPLOAD_PATH) !== false)
-        {
-          $rtn = rename($fileandpath,$newfile);
-          if(!$rtn){
-            $this->_logerror('error','error renaming '.$fileandpath.' to '.$newfile);    
-          } else {
-            $rtn_name = $newfile;
-          }
-        }
-        return $rtn_name;
-    }
-    /*
-     * logerror function
-     * @param $which - message level must be 'error', 'debug' or 'info' per CI (see link below)
-     * @param $errmsg - error to log
-     * ref: http://ellislab.com/codeigniter/user-guide/general/errors.html 
-     */
-    function _logerror($which,$errmsg)
-    {
-        $thisclass = basename(__FILE__, '.php');
-        $logmsg = $thisclass.'-'.$errmsg;
-        log_message($which,$logmsg);
-    }
 } //end class
+/*
+ *    function editform()
+    {
+        //todo: put in User controller/view -- needed for dev test of user_model->update_user
+        $uname = '';
+        $email = '';
+        //$usrid = 0;
+        $imgid = $this->input->post('imgid');
+        $tagid = $this->input->post('tagid');
+        
+        $grps = $this->_get_alltags(false);
+        $data['groups'] = $grps;
+        $sarr = $this->session->all_userdata();
+        if (isset($sarr['uname']) && $sarr['uname'] != "") {
+            $uname = $sarr['uname'];
+        }
+        if (isset($sarr['email']) && $sarr['email'] != "") {
+            $email = $sarr['email'];
+        }
+        //var_dump($sarr);
+        //var_dump($grps);
+        print_r('sarr('.$sarr.') uname('.$uname.') email('.$email.')');
+        print_r('imgid('.$imgid.') tagid('.$tagid.') grps['.$grps.']');
+        if($uname != '' && $email != '' ) {
+            $data['image'] = $this->gallery_model->get_imagedata($imgid);
+            $data['title'] = 'Edit Image Data';
+            //var_dump("data ".$data);
+            //$this->load->view('templates/header', $data);
+            $this->load->view('gallery/editimage', $data);
+            //$this->load->view('templates/footer');
+        }
+    }
+       public function getform()
+    {
+        $this->load->helper('form');
+                
+        $which = GROUP_STR;
+        $descr = '';
+        $tagid = 0;
+        $imgid = 0;
+        
+        $which = $this->input->post('which');
+        $tagid = $this->input->post('tagid');
+        
+        if($which == GROUP_STR){
+            $this->_get_tag_frm();
+            return;
+        }
+        
+        $imgid = $this->input->post('imgid');
+        $descr = $this->input->post('descr');
+        
+        $imgrec = $this->gallery_model->get_imagedata($imgid);
+        if($imgrec) {
+            
+            $allow = $imgrec['allow'];
+            $incitem = (isset($which) &&  strtolower($which) == ITEM_STR) ? true : false; // include item or group only update
+            
+            if($incitem) {
+               $descr = (strlen($descr) > 1 || $imgid > 0) ? $descr : ADD_NEW_REC;
+               $grps = $this->_get_alltags(false);
+            } else {
+               $grps = $this->_get_alltags();
+            }
+            echo '<script src="'.base_url().'assets/js/imageedit.js" type="text/javascript"></script>';
+            echo '<div class="gridcolumn">';
+            echo '<div id="itmform" class="ui-widget-content">';
+                
+            $frmtitle = $incitem ? 'Image Information' : 'Group Information';        
+            echo form_fieldset('<b><style="text-align:center;">'.$frmtitle.'</style></b>');
+            echo '<p class="validateTips"></p>';
+            $js = 'id="frm-dropdown" class="wijmo-wijdropdown"';
+            $ddltitle = $incitem ? 'Assigned Group' : 'Selections';        
+            echo form_label($ddltitle,'frm-dropdown');
+            echo form_dropdown('frm-dropdown',$grps,$tagid,$js);
+            echo '<br/>';
+            //allow (access)
+            $ddltitle = $incitem ? 'Allow Access' : 'Selections';        
+            echo form_label($ddltitle,'radiogrp');
+            $inpattr = array(
+                    'name'     => 'radiobtn',
+                    'id'       => 'radiobtn',
+                    'value'    => '0',
+                    'class'    => 'wijmo-radio',
+                    'style'    => 'float: left',
+                   'checked'   => $allow == 0 ? TRUE : FALSE );
+            //echo form_label('Public','radiobtn');
+            echo form_radio($inpattr).' Public';            
+            $inpattr = array(
+                    'name'     => 'radiobtn',
+                    'id'       => 'radiobtn',
+                    'value'    => '1',
+                    'class'    => 'wijmo-radio',
+                    'style'    => 'float: left',
+                    'checked'  => $allow == 1 ? TRUE : FALSE );
+            //echo form_label('Private','radiobtn');
+            echo form_radio($inpattr).' Private';
+            echo '<p><div id="img-box" />';
+            //file path
+            echo form_label('File Path','fpath');
+            $inpattr = array(
+                    'name'        => 'fpath',
+                    'id'          => 'fpath',
+                    'value'       => $imgrec['fpath'],
+                    'maxlength'   => '128',
+                    'size'        => '80',
+                    'style'       => 'width:95%'   );
+            echo form_input($inpattr);
+            //file name
+            echo form_label('File Name','fname');
+            $inpattr = array(
+                    'name'        => 'fname',
+                    'id'          => 'fname',
+                    'value'       => $imgrec['fname'],
+                    'maxlength'   => '128',
+                    'size'        => '80',
+                    'style'       => 'width:95%'   );
+            echo form_input($inpattr);
+            //file description
+            $ddltitle = $incitem ? 'Image Description' : 'Group Description';        
+            echo form_label($ddltitle,'descr');
+            $inpattr = array(
+                  'name'        => 'descr',
+                  'id'          => 'descr',
+                  'value'       => $imgrec['descr'],
+                  'cols'        => '50',
+                  'rows'        => '3',
+                  'style'       => 'width:95%',
+                  'class'       => 'text ui-widget-content ui-corner-all'
+                );
+            echo form_textarea($inpattr);
+            //echo '<textarea id="descr" rows="3" cols="50" class="text ui-widget-content ui-corner-all" value="'.$descr.'"/>';
+    
+            echo '<input type="hidden" id="imgidnbr" value="'.$imgid.'"/>';
+            echo '<input type="hidden" id="tagidnbr" value="'.$tagid.'"/>';
+            echo '<input type="hidden" id="allow" value="'.$allow.'"/>';
+            echo '<input type="hidden" id="editwhat" value="'.$which.'"/>';
+            echo '<br />';
+                
+            $btnattr = array( 'name' => 'show',
+                              'id' => 'frmsho',
+                              'class' => 'frmsho',
+                              'content' => 'Show');
+            echo form_button($btnattr);
+            
+            $btnattr = array( 'name' => 'delete',
+                              'id' => 'frmdel',
+                              'class' => 'frmdel',
+                              'content' => 'Delete');
+            echo form_button($btnattr);        
+            
+            $btnattr = array( 'name' => 'update',
+                              'id' => 'frmupd',
+                              'class' => 'frmupd',
+                              'content' => 'Update');
+            echo form_button($btnattr);        
+            
+            $btnattr = array( 'name' => 'frmout',
+                              'id' => 'frmout',
+                              'class' => 'frmout',
+                              'content' => 'Cancel');
+            echo form_button($btnattr);        
+            echo form_fieldset_close();
+            $formattr = "</div></div>";
+            echo $formattr;
+        }
+      return;
+    }
+    public function _get_tag_frm()
+    {
+        //$this->load->helper('form');
+                
+        $which = GROUP_STR;
+        $descr = '';
+        $tagid = 0;
+        
+        $which = $this->input->post('which');
+        $tagid = $this->input->post('tagid');
+        $descr = $this->input->post('descr');
+        
+        $tagrec = $this->gallery_model->get_imagetag($tagid);
+        if($tagrec) {
+            $descr = (strlen($descr) > 1 || $tagid > 0) ? $descr : ADD_NEW_REC;
+            $grps = $this->_get_alltags(true);
+            echo '<script src="'.base_url().'assets/js/imageedit.js" type="text/javascript"></script>';
+            echo '<div class="gridcolumn">';
+            echo '<div id="itmform" class="ui-widget-content">';
+                
+            $frmtitle = 'Image Categories';        
+            echo form_fieldset('<b><style="text-align:center;">'.$frmtitle.'</style></b>');
+            echo '<p class="validateTips"></p>';
+            $js = 'id="frm-dropdown" class="wijmo-wijdropdown"';
+            $ddltitle = 'Selections';        
+            echo form_label($ddltitle,'frm-dropdown');
+            echo form_dropdown('frm-dropdown',$grps,$tagid,$js);
+            echo '<br/>';
+            //allow (access)
+            echo '<p>';
+            //file path
+            echo form_label('Description ','descr');
+            $inpattr = array(
+                    'name'        => 'descr',
+                    'id'          => 'descr',
+                    'value'       => $tagrec['descr'],
+                    'maxlength'   => '128',
+                    'size'        => '80',
+                    'style'       => 'width:95%'   );
+            echo form_input($inpattr);
+
+            echo '<input type="hidden" id="tagidnbr" value="'.$tagid.'"/>';
+            echo '<input type="hidden" id="editwhat" value="'.$which.'"/>';
+            echo '<br />';
+    
+            $btnattr = array( 'name' => 'delete',
+                              'id' => 'frmdel',
+                              'class' => 'frmdel',
+                              'content' => 'Delete');
+            echo form_button($btnattr);        
+            
+            $btnattr = array( 'name' => 'update',
+                              'id' => 'frmupd',
+                              'class' => 'frmupd',
+                              'content' => 'Update');
+            echo form_button($btnattr);        
+            
+            $btnattr = array( 'name' => 'frmout',
+                              'id' => 'frmout',
+                              'class' => 'frmout',
+                              'content' => 'Cancel');
+            echo form_button($btnattr);        
+            echo form_fieldset_close();
+            $formattr = "</div></div>";
+            echo $formattr;
+        }
+      return;
+    }
+*/

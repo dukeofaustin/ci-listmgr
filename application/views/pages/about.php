@@ -1,14 +1,3 @@
-<style type="text/css">
-
-.nodots li {
-  list-style-type: none;>
-}
-.devnote {
-  text-decoration:underline;
-}
-
-
-</style>
 <div id="about">
    <h1>About</h1>
    <p>This site was written for the purpose of a .NET developer learning PHP WEB development techniques. It is a GoDaddy Hosted Linux site.   The site is written using PHP 5.2 using the MVC CodeIgniter 2.1.0 <a href="http://ellislab.com/codeigniter">   
@@ -18,16 +7,9 @@
         <li><a href="http://stackoverflow.com/questions/tagged/codeigniter">StackExchange</a></li>
         <li><a href="http://net.tutsplus.com/sessions/codeigniter-from-scratch">NetTuts+</a></li>
         <li><a href="http://wijmo.com/widgets/">Wijmo</a></li>
-
-   <p>It is a pleasure to work with such an open community using powerful tools of our craft.</p>
         
     </ul>
     <p>
-    <p><div class="devnote">Dev Note: start with gallery_model line #153</div></p>
-    <div class="nodots">
-    <ul> <li>1) For no data returned in Slideshow</li>
-         <li>2) Then test uploading</li>
-    </ul>
-    </div>
 </p>
+   <p>It is a pleasure to work with such an open community using powerful tools of our craft.</p>
 </div>

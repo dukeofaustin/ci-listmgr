@@ -1,4 +1,3 @@
-<?php ob_start(); ?>
 <?php showHtmlHeader(); ?>
 <?php verifyAutorization(); ?>
   
@@ -53,8 +52,8 @@
     * @return  void
    */
     function verifyAutorization() {
-        $authorized = isset($_COOKIE['authorized']) && $_COOKIE['authorized'] == "1";
-        if (!$authorized) {
+
+        if (!$_COOKIE['authorized'] == "1") {
 			header("Location: index.php?login");
         }
     }

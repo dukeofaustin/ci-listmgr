@@ -53,25 +53,7 @@ class Siteprocs{
 	    }
 	    return $rtn;
     }
-    /**
-     * isEmpty
-     * @param string or array
-     * @return true if empty array or string
-    */
-    public function isEmpty($stringOrArray) {
-        if(is_array($stringOrArray)) {
-            foreach($stringOrArray as $value) {
-                if(!$this->isEmpty($value)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        if(is_string($stringOrArray))
-           return strlen($stringOrArray) == 0;  // this properly checks on empty string ('')
-        else
-           return empty($stringOrArray);
-    }    
+    
     /*
     public function getUserId()
     {

@@ -104,7 +104,7 @@
            cache:false,
            async: false,
            beforeSend: function(){
-               show_Busy('formarea');
+               show_Busy();
            },
            success:
              function(data){
@@ -116,12 +116,11 @@
               if (status === 'error' || !xhr.responseText) {
                  console.log('updateItem-complete status: Error');
               }
-              $( this ).wijdialog( "close" );
+              hide_Busy();
            },
            error: function(response) {
               console.log('updateItem-ajax-error-status: '+response.status + ' statusText: ' + response.statusText);
            }
-           
          });
      }
      return rtn;
@@ -175,7 +174,7 @@
         cache:false,
         async: false,
         beforeSend: function(){
-            show_Busy('formarea');
+            show_Busy();
         },
         success:
           function(data){
@@ -185,7 +184,7 @@
            if (status === 'error' || !xhr.responseText) {
               console.log('updateGroup-complete status: Error');
            }
-           hide_Busy('formarea');
+           hide_Busy();
         },
         error: function(response) {
     	   console.log('updateGroup-ajax-error-status: '+response.status + ' statusText: ' + response.statusText);
@@ -228,6 +227,14 @@
         }
      }
      return rtn;
+  }
+  function show_Busy(){
+     $('#formarea').block({
+         message: '<img src="../cdig/images/ajax-loader.gif"/>'
+     });
+  }
+  function hide_Busy(){
+     $('#formarea').empty();
   }
   function update_Page(html){
       window.setTimeout( function(){

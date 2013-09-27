@@ -3,9 +3,9 @@
 
 <ul>
 <?php foreach ($error as $item => $value):?>
-<p><?php echo $item;?>: <?php echo $value;?></p>
+<li><?php echo $item;?>: <?php echo $value;?></li>
 <?php endforeach; ?>
 </ul>
 
-<p><?php echo anchor('index.php?upload', 'Upload More Files'); ?></p>
+<p><?php echo anchor('index.php?uploadfrm', 'Upload More Files'); ?></p>
 

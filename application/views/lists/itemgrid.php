@@ -4,18 +4,20 @@
    <div id="leftbtncol" class="column">
      <div class="innertube">
         <button id="frmgupd">Group</button>
+        <button id="frmiupd">Item</button>
         <button id="frmifnd">Search</button>
         <button id="refresh">Refresh</button>
      </div>
      <div class="innertube">
-        <div id="gridview">
-           <?php include('itempage.php'); ?>
+        <div id="formarea">
+           <p>form-column</p>
         </div>
      </div>
    </div>      
    <div id="rightgrdcol" class="column">
      <div class="innertube">
-        <div id="formarea">
+        <div id="gridview">
+           <?php include('itempage.php'); ?>
         </div>
      </div>
    </div>

@@ -8,7 +8,7 @@
 <meta charset="UTF-8">
 <title>say what?</title>
 <?php include_once('application/views/templates/jsandcss.php'); ?>
-<script src="<?php echo base_url();?>assets/js/useredit.js" type="text/javascript"></script>
+<script src="<?php echo base_url();?>assets/js/edituser.js" type="text/javascript"></script>
 <body>
 <!--  <div class="contentwrapper"> -->
     <div id="user-area"></div>

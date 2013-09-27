@@ -46,6 +46,7 @@
             <input name="Filedata[]" id="getfile" type="file" multiple="" onChange="makeFileList();" />
             <input type="submit" id="doupload" value="Upload" />
         </form>
+        <br /><br />
      <div id="leftbtncol" class="column">
      <div class="innertube">
        <p>

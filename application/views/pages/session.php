@@ -30,23 +30,11 @@
         exec("/usr/bin/convert -version",$out,$returnval);
         print_r($out[0]);
     }
-    function displayFileExist($file)
-    {
-        if (file_exists($file)) {
-           echo "The file $file exists";
-        } else {
-           echo "The file $file does not exist";
-        }        
-    }
 ?>
 <div id="about">
    <h1>Session-Developer-Page</h1>
    <?php getSessionData(); ?>
    <p />
-      <?php $path = base_url();
-            $file = 'style/jcrop/jquery.Jcrop.css';
-         echo displayFileExist($file); ?>
-
    <p> showImageConvert Path: 
    <?php showImageConvertPath(); ?>
    </p>

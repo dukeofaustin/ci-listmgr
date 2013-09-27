@@ -18,10 +18,9 @@ $(function() {
        if(validGroupPick())
 	      $('#frmupd').button('enable');
     });
-/*    $('input[type=radio]').live('change', function() {
+    $('input[type=radio]').live('change', function() {
         var chkval = getRadioValue('allow');
     });
-*/
     $('#frmdel')
        .button({
             icons: {
@@ -39,7 +38,7 @@ $(function() {
    	        $("#formarea").empty();
     });
     $('#frmupd')
-        .button({
+     .button({
             icons: {
                 primary: 'ui-icon-check'
             },
@@ -79,7 +78,7 @@ $(function() {
         } else {
 	       console.log('imageedit-a-paramData-id(error-nada!)');
         }
-        //console.log('imageedit-frm-dropdown-mode=descr('+grpdescr+') tagid('+tagidnbr+')');
+        console.log('imageedit-frm-dropdown-mode=descr('+grpdescr+') tagid('+tagidnbr+')');
     });
 });
     var fname = $( "#fname" ),
@@ -166,7 +165,7 @@ $(function() {
            cache:false,
            async: false,
            beforeSend: function(){
-               show_Busy('formarea');
+               show_Busy();
            },
            success:
              function(data){
@@ -176,11 +175,11 @@ $(function() {
               if (status === 'error' || !xhr.responseText) {
                  console.log('updateGroup-complete status: Error');
               }
+              hide_Busy();
            },
            error: function(response) {
               console.log('updateGroup-ajax-error-status: '+response.status + ' statusText: ' + response.statusText);
            }
-           
         });
       return rtn;
     }
@@ -203,6 +202,7 @@ $(function() {
         }
         return false;
     }
+
     function getRadioValue(which)
     {  var rtn = 0;
        $('input[type="radio"]').each(function() {
@@ -240,5 +240,12 @@ $(function() {
            }
        });
     }
+    
+    function showBusy(){
+       $('#showarea').block({
+            message: '<img src="../cdig/images/ajax-loader.gif"/>'
+        });
+    }
+
 
 //</script>

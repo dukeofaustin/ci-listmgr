@@ -18,14 +18,6 @@
         return false;
     }
   }
-  function show_Busy(select){
-     $('#'+select).block({
-         message: '<img src="../cdig/images/ajax-loader.gif"/>'
-     });
-  }
-  function hide_Busy(select){
-     $('#'+select).empty();
-  }
   function updateTips(t) {
      tips.text(t).addClass('ui-state-highlight');
      setTimeout(function() {
